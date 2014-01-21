@@ -16,14 +16,14 @@ DBFile *dbfile;
 
 
 DBFile::DBFile () {
+    this->currentPageNumber=1;
     
 }
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
     
-    this->file.Open(0, f_path);
     
-   
+    this->file.Open(0, f_path);
     
     if(this->file.GetFileStatus()<0)
         return 0;
@@ -47,7 +47,7 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
 //	this->page.EmptyItOut();
 //    }
 
-    WritePageToFileIfDirty(&(this->page), this->currentPageNumber++);
+    //WritePageToFileIfDirty(&(this->page), this->currentPageNumber++);
     Record record;
     while(record.SuckNextRecord(&f_schema,fileToLoad)){
 	//Changed method declaration to accept schema
@@ -56,6 +56,7 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
     }
 
     cout<<"Records loaded successfully"<<endl;
+    cout<<this->currentPageNumber<<endl;
     WritePageToFileIfDirty(&(this->page), this->currentPageNumber++);
     //fclose(fileToLoad);
 }
@@ -74,9 +75,9 @@ int DBFile::Open (char *f_path) {
 void DBFile::MoveFirst () {
     
     cout<<"Moving first"<<endl;
-    this->currentPageNumber=2;
+    this->currentPageNumber=0;
     cout<<"Before : Page records: "<<this->page.GetNumRecs()<<endl;
-    this->file.GetPage(&this->page,2);
+    this->file.GetPage(&this->page,1);
     cout<<"After : Page records: "<<this->page.GetNumRecs()<<endl;
     //this->currentPageNumber++;
     
@@ -84,7 +85,7 @@ void DBFile::MoveFirst () {
 
 int DBFile::Close () {
     
-  WritePageToFileIfDirty(&this->page, this->currentPageNumber);
+ // WritePageToFileIfDirty(&this->page, this->currentPageNumber);
     return this->file.Close();
 }
 
@@ -133,6 +134,7 @@ void DBFile :: WritePageToFileIfDirty(Page* page, int whichPage){
 	/*Write dirty page to the file*/
     if(this->isPageDirty){
     	
+        cout<<"Adding Page"<<endl;
         this->file.AddPage(page, whichPage);
         
         this->page.EmptyItOut();
