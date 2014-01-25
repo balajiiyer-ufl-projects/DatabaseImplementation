@@ -56,10 +56,9 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
     }
     //FIXME check the page number and also reference or pointer
     /*Once all the records are added, write the page to the disk*/
-    WritePageToFileIfDirty(this->page, this->currentPageNumber);
+//    WritePageToFileIfDirty(&this->page, this->currentPageNumber);
 
     cout<<"Records loaded successfully"<<endl;
-//    Close();
 }
 
 /*This function opens a file when path to the file is provided
@@ -97,7 +96,7 @@ void DBFile::MoveFirst () {
 int DBFile::Close () {
 
    /*Before closing the file, it is necessary to write the page to the disk.*/ 
-    WritePageToFileIfDirty(this->page, this->currentPageNumber);
+    WritePageToFileIfDirty(&this->page, this->currentPageNumber);
     return this->file.Close();
 }
 
@@ -106,11 +105,13 @@ void DBFile::initializePage(){
 	/*Since page is created just now, it does not represent any page of a file in the memory.
 	Hence currentPageNumber is 0.
 	Also currently nothing is written on the page, hence it is not dirty*/
-	Page p;
-	this->page = p;
+	//Page p;
+	//this->page = p;
 	//FIXME
 	this->currentPageNumber = 0;
 	this->isPageDirty = false;
+
+	cout<<"Buffer instance is initialized successfully."<<endl;
 
 }
 /*This function is used to add records to the page and in turn to the database file*/
@@ -121,8 +122,11 @@ void DBFile::Add (Record &rec) {
 	
 	if(this->currentPageNumber == 0){
 		this->currentPageNumber++;
+		cout<< "Setting current page to " << this->currentPageNumber << " during add " << endl;
 	}
-		
+	
+	cout << "No os records in page are "<< this->page.GetNumRecs() << endl;
+	
 	/*This function will take care of writing the page out 
 	if the page becomes full before adding a record.
 
@@ -133,7 +137,7 @@ void DBFile::Add (Record &rec) {
 	if(!this->page.Append(&rec)){
 	
 		//FIXME
-		WritePageToFileIfDirty(this->page, this->currentPageNumber);
+		WritePageToFileIfDirty(&this->page, this->currentPageNumber);
 		cout << "Page is full.Appending the record to next page."<<endl;
 		this->currentPageNumber++;
 	
@@ -148,6 +152,7 @@ void DBFile::Add (Record &rec) {
 		this->isPageDirty = true;
 						
 	}else{
+		cout << "Records appended" << endl;
 		/*This means record is appended so set page as dirty*/
 		this->isPageDirty = true;
 	}
@@ -186,20 +191,28 @@ int DBFile::GetNext (Record &fetchme) {
       So fetch next page i.e. continue the loop.
     */
 
-    int noOfPagesInFile = this->file.GetLength(); 
-	if(GetFirst (fetchme)){
+    	int noOfPagesInFile = (this->file.GetLength()) - 1; 
+	/*Decrementing the length by 1 because first page of the file
+        does not contain the data*/
+        
+	cout<< "File length is :: " << noOfPagesInFile <<endl;
+	if(this->page.GetFirst (&fetchme)){
+		cout << "Should print records" <<endl;
 		return 1;
 	}else{
 		
 		/*This means that we have scanned all the records on that page
 		So we should move to next page
 		*/
-		this->page->EmptyItOut();
+		this->page.EmptyItOut();
 		this->currentPageNumber++;
-		
-		if(this->currentPageNumber <= noOfPagesInFile){
-			this->file.GetPage(this->page, this->currentPageNumber);
-			if(GetFirst(fetchme)){
+
+//		cout << "Current Page number is " <<  this->currentPageNumber << endl;	
+//		cout << "No of pages in file is " <<  noOfPagesInFile << endl;
+
+		if(this->currentPageNumber < noOfPagesInFile){
+			this->file.GetPage(&this->page, this->currentPageNumber);
+			if(this->page.GetFirst(&fetchme)){
 				return 1;
 			}
 			else{
@@ -215,11 +228,13 @@ int DBFile::GetNext (Record &fetchme) {
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
-    ComparisonEngine comp;
-    while(GetNext(fetchme)){
-        if(comp.Compare(&fetchme, &literal, &cnf)) {
-            return 1;
-        }
-    }
+	ComparisonEngine comp;
+    
+	while(GetNext(fetchme)){
+        	if(comp.Compare(&fetchme, &literal, &cnf)) {
+			cout << "here here here";
+	        	return 1;
+        	}
+    	}	
     return 0;
 }

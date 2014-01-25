@@ -1,6 +1,5 @@
 #include "File.h"
 #include "TwoWayList.cc"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -9,12 +8,12 @@
 #include <stdlib.h>
 
 
-
 Page :: Page () {
 	curSizeInBytes = sizeof (int);
 	numRecs = 0;
-
+	cout<< "Before myrecs"<<endl;
 	myRecs = new (std::nothrow) TwoWayList<Record>;
+	cout<< "After myrecs"<<endl;
 	if (myRecs == NULL)
 	{
 		cout << "ERROR : Not enough memory. EXIT !!!\n";
@@ -49,6 +48,7 @@ int Page :: GetFirst (Record *firstOne) {
 
 	// make sure there is data 
 	if (!myRecs->RightLength ()) {
+		//cout << "There is no data here" <<endl;
 		return 0;
 	}
 
@@ -64,21 +64,26 @@ int Page :: GetFirst (Record *firstOne) {
 
 
 int Page :: Append (Record *addMe) {
+
+	cout << "Inside append" <<endl;
 	char *b = addMe->GetBits();
 
 	// first see if we can fit the record
 	if (curSizeInBytes + ((int *) b)[0] > PAGE_SIZE) {
 		return 0;
 	}
-
+	cout << "Here" << endl;
 	// move to the last record
-	myRecs->MoveToFinish ();
+	myRecs->MoveToFinish();
+
+	cout << "End of append .." <<endl;
 
 	// and add it
 	curSizeInBytes += ((int *) b)[0];
 	myRecs->Insert(addMe);
 	numRecs++;
 
+	//cout << "End of append" <<endl;
 	return 1;	
 }
 
