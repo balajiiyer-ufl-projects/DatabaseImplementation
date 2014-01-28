@@ -86,7 +86,7 @@ int DBFile::Open (char *f_path) {
 
 void DBFile::MoveFirst () {
     
-    cout<<"Moving to first page"<<endl;
+//    cout<<"Moving to first page"<<endl;
     /*Since we are moving to the first page, page number is 1*/
     this->file.GetPage(&this->page, 1);
     this->currentPageNumber = 1;
@@ -122,10 +122,10 @@ void DBFile::Add (Record &rec) {
 	
 	if(this->currentPageNumber == 0){
 		this->currentPageNumber++;
-		cout<< "Setting current page to " << this->currentPageNumber << " during add " << endl;
+//		cout<< "Setting current page to " << this->currentPageNumber << " during add " << endl;
 	}
 	
-	cout << "No os records in page are "<< this->page.GetNumRecs() << endl;
+//	cout << "No of records in page are "<< this->page.GetNumRecs() << endl;
 	
 	/*This function will take care of writing the page out 
 	if the page becomes full before adding a record.
@@ -152,7 +152,7 @@ void DBFile::Add (Record &rec) {
 		this->isPageDirty = true;
 						
 	}else{
-		cout << "Records appended" << endl;
+		//cout << "Records appended" << endl;
 		/*This means record is appended so set page as dirty*/
 		this->isPageDirty = true;
 	}
@@ -183,7 +183,7 @@ void DBFile :: WritePageToFileIfDirty(Page* page, int whichPage){
 
 int DBFile::GetNext (Record &fetchme) {
     
-    cout << "Getting next record"<<endl;
+//    cout << "Getting next record"<<endl;
 
       /*For each page, perform getPage to bring the page into the buffer.
       Then perform GetFirst() to get records from the page. 
@@ -195,9 +195,9 @@ int DBFile::GetNext (Record &fetchme) {
 	/*Decrementing the length by 1 because first page of the file
         does not contain the data*/
         
-	cout<< "File length is :: " << noOfPagesInFile <<endl;
+//	cout<< "File length is :: " << noOfPagesInFile <<endl;
 	if(this->page.GetFirst (&fetchme)){
-		cout << "Should print records" <<endl;
+//		cout << "Should print records" <<endl;
 		return 1;
 	}else{
 		
@@ -232,7 +232,7 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
     
 	while(GetNext(fetchme)){
         	if(comp.Compare(&fetchme, &literal, &cnf)) {
-			cout << "here here here";
+//			cout << "here here here";
 	        	return 1;
         	}
     	}	

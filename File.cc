@@ -11,9 +11,9 @@
 Page :: Page () {
 	curSizeInBytes = sizeof (int);
 	numRecs = 0;
-	cout<< "Before myrecs"<<endl;
+//	cout<< "Before myrecs"<<endl;
 	myRecs = new (std::nothrow) TwoWayList<Record>;
-	cout<< "After myrecs"<<endl;
+//	cout<< "After myrecs"<<endl;
 	if (myRecs == NULL)
 	{
 		cout << "ERROR : Not enough memory. EXIT !!!\n";
@@ -65,18 +65,18 @@ int Page :: GetFirst (Record *firstOne) {
 
 int Page :: Append (Record *addMe) {
 
-	cout << "Inside append" <<endl;
+//	cout << "Inside append" <<endl;
 	char *b = addMe->GetBits();
 
 	// first see if we can fit the record
 	if (curSizeInBytes + ((int *) b)[0] > PAGE_SIZE) {
 		return 0;
 	}
-	cout << "Here" << endl;
+//	cout << "Here" << endl;
 	// move to the last record
 	myRecs->MoveToFinish();
 
-	cout << "End of append .." <<endl;
+//	cout << "End of append .." <<endl;
 
 	// and add it
 	curSizeInBytes += ((int *) b)[0];
@@ -161,10 +161,10 @@ void Page :: FromBinary (char *bits) {
 }
 
 Record* Page :: GetCurrent() {
-    cout<<"getting current record"<<endl;
+  //  cout<<"getting current record"<<endl;
     Record *temp;
     temp = this->myRecs->Current(1);
-    cout<<"Setting temp pointer"<<endl;
+  //  cout<<"Setting temp pointer"<<endl;
     //this->myRecs->Advance();
     return temp;
 }
