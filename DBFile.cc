@@ -17,85 +17,55 @@ DBFile *dbfile;
 
 DBFile::DBFile () {
     
+    
+    
 }
-/*This function will create a file on the disk. This function
-should be called only once when you are loading the records.
-*/
+
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
-    
     this->file.Open(0, f_path);
-    
-    /*This checks if the file opened successfully or not*/    
     if(this->file.GetFileStatus()<0)
         return 0;
-
-    cout<<"File opened successfully during creation"<<endl;    
-
-    /*Once file is opened successfully, create a page instance*/
-    initializePage();
-
+    this->isPageDirty=false;
+    this->currentPageNumber=1;
     return 1;
 }
 
-/*This function loads the records from a text file to the actual database file on the disk*/
 void DBFile::Load (Schema &f_schema, char *loadpath) {
     
     FILE *fileToLoad = fopen(loadpath, "r");
-   
+    
     if(!fileToLoad){
         cout<< "Can't open file name :" + string(loadpath);
     }
-
+    
     Record record;
- 
-    /*Get all the records one by one from the 
-      text file and using schema file, convert them to database record format.
-      And now append those records to the page*/
-    while(record.SuckNextRecord(&f_schema,fileToLoad)){
+    while(record.SuckNextRecord(&f_schema,fileToLoad)==1){
         Add(record);
+        
     }
-    //FIXME check the page number and also reference or pointer
-    /*Once all the records are added, write the page to the disk*/
-//    WritePageToFileIfDirty(&this->page, this->currentPageNumber);
-
-    cout<<"Records loaded successfully"<<endl;
+    
 }
 
-/*This function opens a file when path to the file is provided
-as a parameter
-*/
 int DBFile::Open (char *f_path) {
-    /*Since file is already created when open function is called,
-	it's length is non-zero. Since we do not know the exact length 
-	we are sending some number i.e.1 */
     file.Open(1, f_path);
-
-    /*This checks if the file was opened successfully*/
     if(this->file.GetFileStatus()<0)
         return 0;
-
     cout<<"File opened successfully"<<endl;
-	
-    /*Once file is opened successfully, create a page instance*/
-    initializePage();
-
+    this->isPageDirty=false;
+    this->currentPageNumber=1;
     return 1;
-    
     
 }
 
 void DBFile::MoveFirst () {
     
-//    cout<<"Moving to first page"<<endl;
     /*Since we are moving to the first page, page number is 1*/
     this->file.GetPage(&this->page, 1);
     this->currentPageNumber = 1;
     
 }
-/*This function closes the file.*/
-int DBFile::Close () {
 
-   /*Before closing the file, it is necessary to write the page to the disk.*/ 
+int DBFile::Close () {
     WritePageToFileIfDirty(&this->page, this->currentPageNumber);
     return this->file.Close();
 }
@@ -105,9 +75,6 @@ void DBFile::initializePage(){
 	/*Since page is created just now, it does not represent any page of a file in the memory.
 	Hence currentPageNumber is 0.
 	Also currently nothing is written on the page, hence it is not dirty*/
-	//Page p;
-	//this->page = p;
-	//FIXME
 	this->currentPageNumber = 0;
 	this->isPageDirty = false;
 
@@ -136,7 +103,6 @@ void DBFile::Add (Record &rec) {
 	/*Check if the page is full before adding a record*/
 	if(!this->page.Append(&rec)){
 	
-		//FIXME
 		WritePageToFileIfDirty(&this->page, this->currentPageNumber);
 		cout << "Page is full.Appending the record to next page."<<endl;
 		this->currentPageNumber++;
@@ -163,28 +129,51 @@ void DBFile::Add (Record &rec) {
 
 /*This function writes a page to the disk ONLY if it is dirty*/
 void DBFile :: WritePageToFileIfDirty(Page* page, int whichPage){
-	    
+    
+    
     /*Write dirty page to the file*/
     if(this->isPageDirty){
-    	
+        
         this->file.AddPage(page, whichPage);
         
         this->page.EmptyItOut();
-	
-	/*NOTE:: We need not increment the current page number in this function.
-	The reason is we are not sure what will be the next operation after writing the page.
-	Hence we should deligate that responsiblity to the next function.
-	*/
-
     }
-
+    
     
 }
 
-int DBFile::GetNext (Record &fetchme) {
-    
-//    cout << "Getting next record"<<endl;
 
+void DBFile::Add (Record &rec) {
+
+    
+    //Try to append it to the existing page
+    if(!this->page.Append(&rec)){
+        
+        cout << "Page is full.Appending the record to next page."<<endl;
+        
+        //this->page.PrintAllRecords(rec);
+        //this->currentPageNumber++;
+        WritePageToFileIfDirty(&this->page, this->currentPageNumber);
+        this->currentPageNumber++;
+        
+        /*
+         Now empty the page and load further records
+         */
+        
+        this->page.Append(&rec);
+        this->isPageDirty = true;
+        
+    }
+    else this->isPageDirty=true;
+    
+    cout<<"Add: Page records: "<<this->page.GetNumRecs()<<endl;
+
+}
+
+int DBFile::GetNext (Record &fetchme) {
+
+//    cout << "Getting next record"<<endl;
+    
       /*For each page, perform getPage to bring the page into the buffer.
       Then perform GetFirst() to get records from the page. 
       The moment GetFirst returns 0 means scanning of that page is completed.
@@ -216,7 +205,7 @@ int DBFile::GetNext (Record &fetchme) {
 				return 1;
 			}
 			else{
-				//FIXME this case should never occur ideally
+				//this case should never occur ideally
 				return 0;
 			}
 		}else{
@@ -227,14 +216,16 @@ int DBFile::GetNext (Record &fetchme) {
 	}
 }
 
+                
+                
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
-	ComparisonEngine comp;
     
-	while(GetNext(fetchme)){
-        	if(comp.Compare(&fetchme, &literal, &cnf)) {
-//			cout << "here here here";
-	        	return 1;
-        	}
-    	}	
+    ComparisonEngine comp;
+    
+    while(GetNext(fetchme)){
+        if(comp.Compare(&fetchme, &literal, &cnf)) {
+            return 1;
+        }
+    }
     return 0;
 }
