@@ -251,13 +251,10 @@ TwoWayList <Type> :: Insert (Type *Item)
 template <class Type> Type* 
 TwoWayList <Type> ::  Current (int offset)
 {
-    cout<<"Inside two way list"<<endl;
 	Node *temp = list->current->next;
-    cout<<temp->data<<endl;
 	for (int i = 0; i < offset; i++) {
 		temp = temp->next;
 	}
-    cout<<"Out two way list"<<endl;
 	return temp->data;
 }
 
