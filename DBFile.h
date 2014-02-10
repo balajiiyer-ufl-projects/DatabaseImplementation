@@ -59,6 +59,7 @@ public:
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
     void WritePageToFileIfDirty(Page* page, int);
+    void initializePage();
     
 };
 #endif
