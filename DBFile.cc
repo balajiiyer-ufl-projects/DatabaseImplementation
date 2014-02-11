@@ -142,34 +142,6 @@ void DBFile :: WritePageToFileIfDirty(Page* page, int whichPage){
     
 }
 
-
-void DBFile::Add (Record &rec) {
-
-    
-    //Try to append it to the existing page
-    if(!this->page.Append(&rec)){
-        
-        cout << "Page is full.Appending the record to next page."<<endl;
-        
-        //this->page.PrintAllRecords(rec);
-        //this->currentPageNumber++;
-        WritePageToFileIfDirty(&this->page, this->currentPageNumber);
-        this->currentPageNumber++;
-        
-        /*
-         Now empty the page and load further records
-         */
-        
-        this->page.Append(&rec);
-        this->isPageDirty = true;
-        
-    }
-    else this->isPageDirty=true;
-    
-    cout<<"Add: Page records: "<<this->page.GetNumRecs()<<endl;
-
-}
-
 int DBFile::GetNext (Record &fetchme) {
 
 //    cout << "Getting next record"<<endl;
