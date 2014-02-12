@@ -10,7 +10,6 @@
 
 typedef enum {heap, sorted, tree} fType;
 
-
 class BaseDBFile{
     
     BaseDBFile ();
