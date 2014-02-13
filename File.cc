@@ -213,6 +213,7 @@ int File :: GetFileStatus()
     
 }
 
+
 int Page :: GetCurSize(){
     return this->curSizeInBytes;
 }

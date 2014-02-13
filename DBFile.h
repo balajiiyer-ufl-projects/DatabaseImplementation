@@ -1,6 +1,8 @@
 #ifndef DBFILE_H
 #define DBFILE_H
 
+
+
 #include "TwoWayList.h"
 #include "Record.h"
 #include "Schema.h"
@@ -8,10 +10,14 @@
 #include "Comparison.h"
 #include "ComparisonEngine.h"
 
+#include <iostream>
+
 typedef enum {heap, sorted, tree} fType;
+
 
 class BaseDBFile{
     
+public:
     BaseDBFile ();
     ~BaseDBFile();
     
@@ -26,14 +32,14 @@ class BaseDBFile{
 	virtual void Add (Record &addme)=0;
 	virtual int GetNext (Record &fetchme)=0;
 	virtual int GetNext (Record &fetchme, CNF &cnf, Record &literal)=0;
-    
-    
 };
 
 
 // stub DBFile header..replace it with your own DBFile.h
 
-class DBFile {
+class DBFile  {
+
+private:
     File file;
     Page page;
     bool isFileOpen;
@@ -45,9 +51,9 @@ class DBFile {
     
 public:
 	DBFile ();
+    virtual ~DBFile();
     
-    
-	int Create (char *fpath, fType file_type, void *startup);
+    int Create (char *fpath, fType file_type, void *startup);
 	int Open (char *fpath);
 	int Close ();
     
@@ -60,5 +66,9 @@ public:
     void WritePageToFileIfDirty(Page* page, int);
     void initializePage();
     
+    
 };
 #endif
+
+
+
