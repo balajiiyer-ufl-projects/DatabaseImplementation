@@ -37,15 +37,14 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
     }
     else if(f_type==sorted){
         baseDbFile=new Sorted();
-        
-    }
+            }
     
 //    //Check if baseDbFile exists
 //    if(!baseDbFile){
 //        cout<<"Not enough memory.Exit now."<<endl;
 //        exit(1);
 //    }
-    
+
     return baseDbFile->Create(f_path,f_type,startup);
     
 
