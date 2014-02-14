@@ -22,32 +22,32 @@ DBFile::DBFile (){
 
 DBFile::~DBFile(){
     if(baseDbFile){
-    delete baseDbFile;
-    baseDbFile=NULL;
+        delete baseDbFile;
+        baseDbFile=NULL;
     }
 }
 
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
-
+    
     //Phase-2
     //Create a base db file object based on the file type
     if(f_type==heap){
-        baseDbFile=new Heap();
+        baseDbFile=new Heap();  
     }
     else if(f_type==sorted){
         baseDbFile=new Sorted();
-            }
+    }
     
-//    //Check if baseDbFile exists
-//    if(!baseDbFile){
-//        cout<<"Not enough memory.Exit now."<<endl;
-//        exit(1);
-//    }
-
+    //    //Check if baseDbFile exists
+    //    if(!baseDbFile){
+    //        cout<<"Not enough memory.Exit now."<<endl;
+    //        exit(1);
+    //    }
+    
     return baseDbFile->Create(f_path,f_type,startup);
     
-
+    
 }
 
 //Load the schema
@@ -87,7 +87,7 @@ int DBFile::Open (char *f_path) {
             }
         }
     }
-        return baseDbFile->Open(f_path);
+    return baseDbFile->Open(f_path);
 }
 
 //Moves the pointer to point to first record
@@ -100,16 +100,16 @@ void DBFile::MoveFirst () {
 int DBFile::Close () {
     //Phase-2
     return baseDbFile->Close();
-
+    
 }
 /* Not used for now */
 //void DBFile::initializePage(){
 //
 //    //baseDbFile->initializePage();
-//    
-//    
-//    
-//    
+//
+//
+//
+//
 //	/*Since page is created just now, it does not represent any page of a file in the memory.
 //	Hence currentPageNumber is 0.
 //	Also currently nothing is written on the page, hence it is not dirty*/
@@ -125,36 +125,36 @@ int DBFile::Close () {
 void DBFile::Add (Record &rec) {
     //Phase-2
     baseDbFile->Add(rec);
-
+    
 }
 
 /* Not used for now */
 ///*This function writes a page to the disk ONLY if it is dirty*/
 //void DBFile :: WritePageToFileIfDirty(Page* page, int whichPage){
-//    
+//
 //    //Phase-2
 //   // baseDbFile->WritePageToFileIfDirty(page,whichPage);
-//    
+//
 //
 //    /*Write dirty page to the file*/
 //    if(this->isPageDirty){
-//        
+//
 //        this->file.AddPage(page, whichPage);
-//        
+//
 //        this->page.EmptyItOut();
 //    }
-//    
-//    
+//
+//
 //}
 
 //Gets the next record
 int DBFile::GetNext (Record &fetchme) {
     //Phase-2
-   return baseDbFile->GetNext(fetchme);
+    return baseDbFile->GetNext(fetchme);
     
 }
 
-                
+
 //Applies CNF expression and gets the next record
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
     //Phase-2
