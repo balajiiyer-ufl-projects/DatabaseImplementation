@@ -40,6 +40,7 @@ public:
 class DBFile  {
 
 private:
+    
     File file;
     Page page;
     bool isFileOpen;

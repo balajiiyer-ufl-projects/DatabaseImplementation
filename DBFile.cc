@@ -29,14 +29,15 @@ DBFile::~DBFile(){
 
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
-    
+
     //Phase-2
     //Create a base db file object based on the file type
     if(f_type==heap){
         baseDbFile=new Heap();
     }
-    else{
+    else if(f_type==sorted){
         baseDbFile=new Sorted();
+        
     }
     
 //    //Check if baseDbFile exists
@@ -44,7 +45,8 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 //        cout<<"Not enough memory.Exit now."<<endl;
 //        exit(1);
 //    }
-    return baseDbFile->Create(f_path, f_type,startup);
+    
+    return baseDbFile->Create(f_path,f_type,startup);
     
 
 }
