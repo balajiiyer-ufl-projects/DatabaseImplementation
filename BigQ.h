@@ -8,7 +8,7 @@
 #include "Record.h"
 #include "Comparison.h"
 #include <vector>
-#include <algorithm>
+//#include <algorithm>
 #include <queue>
 
 using namespace std;
@@ -18,21 +18,24 @@ class BigQ
 {
 //Phase - 1
 private:
-    string fileName;
+    char* fileName;
     File file;
     vector<int>runIndices;
     int pagesTotal;
     Pipe *inPipe, *outPipe;
     OrderMaker *sortOrder;
     int runLength;
-    string metadataFileName;
     ComparisonEngine ce;
     int appendCount;
+    int pageCount;
   
 public:
     BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlength);
     ~BigQ();
-    void writePages( vector<Record *> &pqRecs);
+    //Phase-1
+   static void *SortPhase1(void *ptr);
+    void* CreateSortedRuns();
+    //void writePages( vector<Record *> &pqRecs);
 };
 
 class CompareRec
