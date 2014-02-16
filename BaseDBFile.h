@@ -1,17 +1,39 @@
-//
-//  BaseDBFile.h
-//  databaseproj
-//
-//  Created by Balaji Iyer on 2/14/14.
-//  Copyright (c) 2014 Balaji Iyer. All rights reserved.
-//
+#ifndef BASEDBFILE_H
+#define BASEDBFILE_H
 
-#ifndef __databaseproj__BaseDBFile__
-#define __databaseproj__BaseDBFile__
+
+
+#include "TwoWayList.h"
+#include "Record.h"
+#include "Schema.h"
+#include "File.h"
+#include "Comparison.h"
+#include "ComparisonEngine.h"
 
 #include <iostream>
 
 
 
+class BaseDBFile{
+    
+public:
+    BaseDBFile ();
+    ~BaseDBFile();
+    
+    
+	virtual int Create (char *fpath, void *startup)=0;
+	virtual int Open (char *fpath)=0;
+	virtual int Close ()=0;
+    
+	virtual void Load (Schema &myschema, char *loadpath);
+    
+	virtual void MoveFirst ()=0;
+	virtual void Add (Record &addme)=0;
+	virtual int GetNext (Record &fetchme)=0;
+	virtual int GetNext (Record &fetchme, CNF &cnf, Record &literal)=0;
+};
 
-#endif /* defined(__databaseproj__BaseDBFile__) */
+#endif
+
+
+
