@@ -54,11 +54,13 @@ void* BigQ::CreateSortedRuns(){
         
         queue.push(recordCopy);
         
-        //page is required to compare with runlength
+
         if(!pagesForRunlength.Append(record)){
             pageCountPerRun++;
+            //pageCountPerRun is required to compare with runlength
             if(runLength==pageCountPerRun){
                 Page page;
+                //Store the page count per run
                 runIndices.push_back(pageCountPerRun);
                 //Store the sort records in page
                 
@@ -80,7 +82,6 @@ void* BigQ::CreateSortedRuns(){
                 //Reset the count for next run
                 pageCountPerRun=0;
 
-                
             }
             pagesForRunlength.EmptyItOut();
             pagesForRunlength.Append(record);
@@ -88,7 +89,9 @@ void* BigQ::CreateSortedRuns(){
         }
         
     }
+    //Delete record
     delete record;
+    //If queue still contains record,append it to a new run
     if(queue.size()!=0){
         Page page;
         pageCountPerRun=0;
