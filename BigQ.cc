@@ -136,7 +136,6 @@ void* BigQ::CreateSortedRuns(){
 int BigQ::MergeRuns(){
     
     file.Open(1, fileName);
-    struct PQRecStruct *pqRec;
     RecordStruct *record = new RecordStruct;
     int numOfRuns = runIndices.size();
     Run *runArray = new Run[numOfRuns];
@@ -147,7 +146,7 @@ int BigQ::MergeRuns(){
     file.GetPage(&(runArray[0].currentPage), runArray[0].currentPageNumber);
     /*Initialize Run data structure*/
     for(int i = 1; i< numOfRuns; i++){
-        runArray[i].currentPageNumber = runIndices[i-1] + 1;
+        runArray[i].currentPageNumber = (runIndices[i-1]) * (i-1) + 1;
 	cout << "Initially we push " << runArray[i].currentPageNumber << " th page for run number " << i << endl;
         runArray[i].totalPages = runIndices[i];
         file.GetPage(&(runArray[i].currentPage), runArray[i].currentPageNumber);
@@ -164,30 +163,34 @@ int BigQ::MergeRuns(){
     
     //
     while(numOfRuns>0){
-        
+	cout << "Before you pop the record from merge queue" << endl;        
         //Fetch the record from priority queue
         RecordStruct *candidate=mergeQueue.top();
         //Insert each record into output queue
         outPipe->Insert(&(candidate->record));
         //Delete the record from priority queue
         mergeQueue.pop();
+	cout << "After you pop the record from merge queue" << endl;
         //Get the next record from the run
         RecordStruct *nextCandidate;
         nextCandidate=GetNextRecordFromRun(candidate->run_num,runArray);
         cout<<&nextCandidate<<endl;
-        if(&nextCandidate==NULL){
+        if(!nextCandidate){
+		cout << "inside if " <<endl;
             numOfRuns--;
             //Delete the run if exhausted
             delete (&runArray[candidate->run_num]);
         }
         else{
+		cout << "inside else" <<endl;
             //Add the next record to queue
             mergeQueue.push(nextCandidate);
+		 cout << "inside else after" <<endl;
         }
         
     }
     
-    
+   cout << "While loop ends" <<endl; 
     // Check if all runs exhausted, exit
     file.Close();
     delete &runIndices;
@@ -200,11 +203,13 @@ int BigQ::MergeRuns(){
 RecordStruct * BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
     RecordStruct *nextRecord=new RecordStruct;
     if(array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record))){
+	cout <<"Regular case" << endl;
         return nextRecord;
     
     }
     //Check for more pages in the run
     else{
+	cout << "Here 1" <<endl;
         //Decrement the number of pages in the run
 	cout << "Total pages to be consumed are "<< array[currentRunNumber].totalPages << " and current page number is " << array[currentRunNumber].currentPageNumber << " for run no " << currentRunNumber <<endl;
         array[currentRunNumber].totalPages--;
@@ -216,9 +221,9 @@ RecordStruct * BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
          //Return the next record
             array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record));
         }
-        else{
+        else{	cout << "here 2" <<endl;
 		cout << "Case where run no " << currentRunNumber << "got exhausted " <<endl;
-            delete &nextRecord;
+            delete nextRecord;
         }
     }
     
