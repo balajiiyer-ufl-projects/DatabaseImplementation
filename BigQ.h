@@ -21,13 +21,15 @@ private:
     char* fileName;
     File file;
     vector<int>runIndices;
-    int pagesTotal;
+    int pageCountPerRun;
     Pipe *inPipe, *outPipe;
     OrderMaker *sortOrder;
     int runLength;
     ComparisonEngine ce;
     int appendCount;
-    int pageCount;
+    int pagesTotal;
+    //Phase - 2
+    int MergeRuns();
   
 public:
     BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlength);

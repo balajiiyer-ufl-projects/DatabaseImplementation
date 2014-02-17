@@ -13,7 +13,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     //Creating new thread.Generates runs
     pthread_t sortingThread;
     //Need to check this
-    pthread_create(&sortingThread,NULL,SortPhase1,(void*)this);
+    pthread_create(&sortingThread,NULL,&SortPhase1,(void*)this);
     
     // construct priority queue over sorted runs and dump sorted data
  	// into the out pipe
@@ -37,59 +37,88 @@ void* BigQ::SortPhase1(void *ptr){
 
 void* BigQ::CreateSortedRuns(){
     fileName="runFile.run"; //probably requires timeStamp;
-    Page page;
-    pagesTotal=0;
-    pageCount=0;
+    
+    pageCountPerRun=0;//Stores the page count per run
+    pagesTotal=0;//Total number of pages in a file
     Record *record=new Record;
+    Record *recordCopy;
     Page pagesForRunlength;
     //Need to check syntax
     priority_queue<Record *, vector<Record *>, CompareRec> queue(sortOrder);
     file.Open(0,fileName);
     
     while(inPipe->Remove(record)){
-
+        recordCopy=new Record;
+        //Copy the record since appending would consume the record
+        recordCopy->Copy(record);
+        
+        queue.push(recordCopy);
+        
         //page is required to compare with runlength
         if(!pagesForRunlength.Append(record)){
-            pagesTotal++;
-            if(runLength==pagesTotal){
-                runIndices.push_back(pagesTotal);
+            pageCountPerRun++;
+            if(runLength==pageCountPerRun){
+                Page page;
+                runIndices.push_back(pageCountPerRun);
                 //Store the sort records in page
                 
-                while(queue.size()>0){
+                while(queue.size()!=0){
                     if(!page.Append(queue.top())){
-                        pageCount++;
-                        file.AddPage(&page,pageCount);
+                        pagesTotal++;
+                        file.AddPage(&page,pagesTotal);
                         page.EmptyItOut();
                         page.Append(queue.top());
                     }
                     queue.pop();
                     
                 }
-                
+                //Add the last page to file
+                pagesTotal++;
+                file.AddPage(&page,pagesTotal);
+                page.EmptyItOut();
+                queue.empty();
                 //Reset the count for next run
-                pagesTotal=0;
-                pageCount=0;
+                pageCountPerRun=0;
+
+                
             }
             pagesForRunlength.EmptyItOut();
             pagesForRunlength.Append(record);
-            queue.push(record);
             
         }
-    
+        
     }
-    while(queue.size()>0){
-        if(!page.Append(queue.top())){
-            pageCount++;
-            file.AddPage(&page,pageCount);
-            page.EmptyItOut();
-            page.Append(queue.top());
-        }
-        queue.pop();
-    }
-    //Delete objects and close the file
-    pagesForRunlength;
     delete record;
+    if(queue.size()!=0){
+        Page page;
+        pageCountPerRun=0;
+        while(queue.size()!=0){
+            if(!page.Append(queue.top())){
+                pageCountPerRun++;
+                pagesTotal++;
+                file.AddPage(&page,pagesTotal);
+                page.EmptyItOut();
+                page.Append(queue.top());
+            }
+            queue.pop();
+        }
+        //Add the last page to file
+        pageCountPerRun++;
+        pagesTotal++;
+        file.AddPage(&page,pagesTotal);
+        page.EmptyItOut();
+        queue.empty();
+        
+    }
+    runIndices.push_back(pageCountPerRun);
+    for (int i = 0; i < runIndices.size(); i++) {
+        cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
+    }
     file.Close();
+    MergeRuns();
     //FIX ME : Need to comment and test (San)
     return 0;
-    }
+}
+int BigQ::MergeRuns(){
+    return 1;
+}
