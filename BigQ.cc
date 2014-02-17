@@ -129,7 +129,7 @@ int BigQ::MergeRuns(){
     
     file.Open(1, fileName);
     struct PQRecStruct *pqRec;
-    RecordStruct record;
+    RecordStruct *record = new RecordStruct;
     int numOfRuns = runIndices.size();
     Run *runArray = new Run[numOfRuns];
     priority_queue<RecordStruct *, vector<RecordStruct *>, ComparePQ> mergeQueue(sortOrder);
@@ -139,7 +139,6 @@ int BigQ::MergeRuns(){
     file.GetPage(&(runArray[0].currentPage), runArray[0].currentPageNumber);
     /*Initialize Run data structure*/
     for(int i = 1; i< numOfRuns; i++){
-        
         runArray[i].currentPageNumber = runIndices[i-1] + 1;
         runArray[i].totalPages = runIndices[i];
         file.GetPage(&(runArray[i].currentPage), runArray[i].currentPageNumber);
@@ -148,32 +147,33 @@ int BigQ::MergeRuns(){
     
     //Fetch the record and store it
     for(int runCount=0;runCount<numOfRuns;runCount++){
-        runArray[runCount].currentPage.GetFirst(&record.record);
+        runArray[runCount].currentPage.GetFirst(&(record->record));
         //Insert the record into priority queue
-        mergeQueue.push(&record);
-        record.run_num=runCount;
+        mergeQueue.push(record);
+        record->run_num=runCount;
     }
     
     //
     while(numOfRuns>0){
         
         //Fetch the record from priority queue
-        RecordStruct candidate=*mergeQueue.top();
+        RecordStruct *candidate=mergeQueue.top();
         //Insert each record into output queue
-        outPipe->Insert(&(candidate.record));
+        outPipe->Insert(&(candidate->record));
         //Delete the record from priority queue
         mergeQueue.pop();
         //Get the next record from the run
-        RecordStruct nextCandidate;
-        nextCandidate=GetNextRecordFromRun(candidate.run_num,runArray);
+        RecordStruct *nextCandidate;
+        nextCandidate=GetNextRecordFromRun(candidate->run_num,runArray);
+        cout<<&nextCandidate<<endl;
         if(&nextCandidate==NULL){
             numOfRuns--;
             //Delete the run if exhausted
-            delete &runArray[candidate.run_num];
+            delete (&runArray[candidate->run_num]);
         }
         else{
             //Add the next record to queue
-            mergeQueue.push(&nextCandidate);
+            mergeQueue.push(nextCandidate);
         }
         
     }
@@ -188,9 +188,9 @@ int BigQ::MergeRuns(){
 }
 
 
-RecordStruct BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
-    RecordStruct nextRecord;
-    if(array[currentRunNumber].currentPage.GetFirst(&nextRecord.record)){
+RecordStruct * BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
+    RecordStruct *nextRecord=new RecordStruct;
+    if(array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record))){
         return nextRecord;
     
     }
@@ -204,7 +204,7 @@ RecordStruct BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
         //Get the next Page and set as the current page
         file.GetPage(&(array[currentRunNumber].currentPage), array[currentRunNumber].currentPageNumber);
          //Return the next record
-            array[currentRunNumber].currentPage.GetFirst(&nextRecord.record);
+            array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record));
         }
         else{
             delete &nextRecord;
