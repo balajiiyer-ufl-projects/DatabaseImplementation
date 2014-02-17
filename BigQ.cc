@@ -136,7 +136,6 @@ void* BigQ::CreateSortedRuns(){
 int BigQ::MergeRuns(){
     
     file.Open(1, fileName);
-    struct PQRecStruct *pqRec;
     RecordStruct *record = new RecordStruct;
     int numOfRuns = runIndices.size();
     Run *runArray = new Run[numOfRuns];
@@ -147,7 +146,7 @@ int BigQ::MergeRuns(){
     file.GetPage(&(runArray[0].currentPage), runArray[0].currentPageNumber);
     /*Initialize Run data structure*/
     for(int i = 1; i< numOfRuns; i++){
-        runArray[i].currentPageNumber = runIndices[i-1] + 1;
+        runArray[i].currentPageNumber = (runIndices[i-1])*(i-1) + 1;
 	cout << "Initially we push " << runArray[i].currentPageNumber << " th page for run number " << i << endl;
         runArray[i].totalPages = runIndices[i];
         file.GetPage(&(runArray[i].currentPage), runArray[i].currentPageNumber);
@@ -172,10 +171,9 @@ int BigQ::MergeRuns(){
         //Delete the record from priority queue
         mergeQueue.pop();
         //Get the next record from the run
-        RecordStruct *nextCandidate;
-        nextCandidate=GetNextRecordFromRun(candidate->run_num,runArray);
-        cout<<&nextCandidate<<endl;
-        if(&nextCandidate==NULL){
+        RecordStruct *nextCandidate=new RecordStruct;
+        if(!GetNextRecordFromRun(candidate->run_num,runArray,nextCandidate))
+        {
             numOfRuns--;
             //Delete the run if exhausted
             delete (&runArray[candidate->run_num]);
@@ -197,10 +195,11 @@ int BigQ::MergeRuns(){
 }
 
 
-RecordStruct * BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
-    RecordStruct *nextRecord=new RecordStruct;
+bool BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array,RecordStruct *nextRecord){
+    //RecordStruct *nextRecord=new RecordStruct;
+    int status;
     if(array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record))){
-        return nextRecord;
+        status=1;
     
     }
     //Check for more pages in the run
@@ -215,14 +214,15 @@ RecordStruct * BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array){
         file.GetPage(&(array[currentRunNumber].currentPage), array[currentRunNumber].currentPageNumber);
          //Return the next record
             array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record));
+            status=1;
         }
         else{
 		cout << "Case where run no " << currentRunNumber << "got exhausted " <<endl;
-            delete &nextRecord;
+            //delete nextRecord;
+            status=0;
         }
     }
     
-    return nextRecord;
-    
-    //return 1;
+    return status;
+
 }

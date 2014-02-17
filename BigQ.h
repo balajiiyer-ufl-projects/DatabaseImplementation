@@ -52,7 +52,7 @@ public:
     void* CreateSortedRuns();
     //Phase-2
     
-    RecordStruct * GetNextRecordFromRun(int runNumber,Run * array );
+    bool GetNextRecordFromRun(int runNumber,Run * array,RecordStruct * record );
     //void writePages( vector<Record *> &pqRecs);
 };
 
