@@ -13,6 +13,19 @@
 
 using namespace std;
 
+class Run
+{
+public:
+    Page currentPage;
+    int currentPageNumber;
+    int totalPages;
+};
+
+struct RecordStruct
+{
+    Record record;
+    int run_num;
+};
 
 class BigQ
 {
@@ -35,8 +48,11 @@ public:
     BigQ(Pipe &in, Pipe &out, OrderMaker &sortorder, int runlength);
     ~BigQ();
     //Phase-1
-   static void *SortPhase1(void *ptr);
+   static void *GenerateRuns(void *ptr);
     void* CreateSortedRuns();
+    //Phase-2
+    
+    RecordStruct GetNextRecordFromRun(int runNumber,Run * array );
     //void writePages( vector<Record *> &pqRecs);
 };
 
@@ -58,6 +74,31 @@ public:
             return true;
     }
 };
+
+
+
+
+
+class ComparePQ
+{
+private:
+    OrderMaker* sortOrder;
+public:
+    ComparePQ(OrderMaker *sortorder)
+    {
+        sortOrder = sortorder;
+    }
+    bool operator()(RecordStruct *leftRecord, RecordStruct *rightRecord)
+    {
+        ComparisonEngine comparisonEngine;
+        if(comparisonEngine.Compare(&(leftRecord->record), &(rightRecord->record), sortOrder)<=0)
+            return false;
+        
+        return true;
+        
+    }
+};
+
 
 
 #endif
