@@ -15,9 +15,9 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     //Need to check this
     pthread_create(&sortingThread,NULL,&GenerateRuns,(void*)this);
     
-    // construct priority queue over sorted runs and dump sorted data
- 	// into the out pipe
     
+    //Main thread would wait till sorting is done and the records are inserted to output
+    //pipe
     pthread_join(sortingThread, &ret);
     // finally shut down the out pipe
 	out.ShutDown ();
@@ -137,10 +137,10 @@ void* BigQ::CreateSortedRuns(){
     cout<<"File length - 1= "<<file.GetLength()-1;
     file.Close();
     
+    // construct priority queue over sorted runs and dump sorted data
+ 	// into the out pipe
     MergeRuns();
-    //FIX ME : Need to comment and test (San)
-    //outPipe->ShutDown();
-    //return 0;
+    
 }
 int BigQ::MergeRuns(){
     
@@ -153,14 +153,15 @@ int BigQ::MergeRuns(){
     runArray[0].totalPages = runIndices[0];
     file.GetPage(&(runArray[0].currentPage), runArray[0].currentPageNumber);
     if(numOfRuns>1){
-    /*Initialize Run data structure*/
-    for(int i = 1; i< numOfRuns; i++){
-        runArray[i].currentPageNumber = (runIndices[i-1])*(i);
-        cout << "Initially we push " << runArray[i].currentPageNumber << " th page for run number " << i << endl;
-        runArray[i].totalPages = runIndices[i];
-        file.GetPage(&(runArray[i].currentPage), runArray[i].currentPageNumber);
-        
-    }
+        /*Initialize Run data structure*/
+        for(int i = 1; i< numOfRuns; i++){
+            //runArray[i].currentPageNumber = (runIndices[i-1])*(i);
+            runArray[i].currentPageNumber = runIndices[i-1];
+            cout << "Initially we push " << runArray[i].currentPageNumber << " th page for run number " << i << endl;
+            runArray[i].totalPages = runIndices[i];
+            file.GetPage(&(runArray[i].currentPage), runArray[i].currentPageNumber);
+            runIndices[i]+=runIndices[i-1];
+        }
     }
     cout<<"First set of records: "<<endl;
     //Fetch the record and store it
@@ -191,7 +192,7 @@ int BigQ::MergeRuns(){
         outPipe->Insert(&(candidate->record));
         cout<<"MergeRuns:Inserted one record"<<endl;
         cout<<"-------------------------------"<<endl;
-       
+        
         
         //Get the next record from the run
         RecordStruct *nextRecord=new RecordStruct;
@@ -230,9 +231,6 @@ int BigQ::MergeRuns(){
             }
         }
         
-        
-        
-        
         //        if(!GetNextRecordFromRun(runNum,runArray,nextCandidate,mergeQueue))
         //        {
         //            cout<<"MergeRuns : Run number exhausted in GetNext.Decrementing numOfRuns"<<endl;
@@ -253,9 +251,8 @@ int BigQ::MergeRuns(){
     // Check if all runs exhausted, exit
     file.Close();
     //delete &runIndices;
-    //outPipe->ShutDown();
-    cout<<"totPages: "<<pagesTotal;
-    //return 1;
+    //Enable this for debug
+    //cout<<"totPages: "<<pagesTotal;
 }
 
 
