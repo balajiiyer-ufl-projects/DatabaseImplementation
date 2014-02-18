@@ -27,6 +27,26 @@ struct RecordStruct
     int run_num;
 };
 
+class ComparePQ
+{
+private:
+    OrderMaker* sortOrder;
+public:
+    ComparePQ(OrderMaker *sortorder)
+    {
+        sortOrder = sortorder;
+    }
+    bool operator()(RecordStruct *leftRecord, RecordStruct *rightRecord)
+    {
+        ComparisonEngine comparisonEngine;
+        if(comparisonEngine.Compare(&(leftRecord->record), &(rightRecord->record), sortOrder)<=0)
+            return false;
+        
+        return true;
+        
+    }
+};
+
 class BigQ
 {
 //Phase - 1
@@ -52,7 +72,7 @@ public:
     void* CreateSortedRuns();
     //Phase-2
     
-    bool GetNextRecordFromRun(int runNumber,Run * array,RecordStruct * record );
+    bool GetNextRecordFromRun(int runNumber,Run * array,RecordStruct * record,priority_queue<RecordStruct *, vector<RecordStruct *>, ComparePQ> mergeQueue);
     //void writePages( vector<Record *> &pqRecs);
 };
 
@@ -78,26 +98,6 @@ public:
 
 
 
-
-class ComparePQ
-{
-private:
-    OrderMaker* sortOrder;
-public:
-    ComparePQ(OrderMaker *sortorder)
-    {
-        sortOrder = sortorder;
-    }
-    bool operator()(RecordStruct *leftRecord, RecordStruct *rightRecord)
-    {
-        ComparisonEngine comparisonEngine;
-        if(comparisonEngine.Compare(&(leftRecord->record), &(rightRecord->record), sortOrder)<=0)
-            return false;
-        
-        return true;
-        
-    }
-};
 
 
 
