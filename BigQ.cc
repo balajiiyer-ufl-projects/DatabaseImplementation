@@ -76,7 +76,7 @@ void* BigQ::CreateSortedRuns(){
                         file.AddPage(&page,pagesTotal);
                         pagesTotal++;
                         pageCount++;
-                        cout << pagesTotal << "th page is written to file part 1" << endl;
+                        //cout << pagesTotal << "th page is written to file part 1" << endl;
                         
                         page.EmptyItOut();
                         page.Append(queue.top());
@@ -132,9 +132,9 @@ void* BigQ::CreateSortedRuns(){
     }
     runIndices.push_back(pageCountPerRun);
     for (int i = 0; i < runIndices.size(); i++) {
-        cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
+        //cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
     }
-    cout<<"File length - 1= "<<file.GetLength()-1;
+    //cout<<"File length - 1= "<<file.GetLength()-1;
     file.Close();
     
     // construct priority queue over sorted runs and dump sorted data
@@ -157,13 +157,13 @@ int BigQ::MergeRuns(){
         for(int i = 1; i< numOfRuns; i++){
             //runArray[i].currentPageNumber = (runIndices[i-1])*(i);
             runArray[i].currentPageNumber = runIndices[i-1];
-            cout << "Initially we push " << runArray[i].currentPageNumber << " th page for run number " << i << endl;
+            //cout << "Initially we push " << runArray[i].currentPageNumber << " th page for run number " << i << endl;
             runArray[i].totalPages = runIndices[i];
             file.GetPage(&(runArray[i].currentPage), runArray[i].currentPageNumber);
             runIndices[i]+=runIndices[i-1];
         }
     }
-    cout<<"First set of records: "<<endl;
+    //cout<<"First set of records: "<<endl;
     //Fetch the record and store it
     for(int runCount=0;runCount<numOfRuns;runCount++){
         //Culprit
@@ -172,32 +172,32 @@ int BigQ::MergeRuns(){
         record->run_num=runCount;
         //Insert the record into priority queue
         
-        cout<<"record : "<<record<<"RunNum: "<<runCount;
+        //cout<<"record : "<<record<<"RunNum: "<<runCount;
         mergeQueue.push(record);
         
     }
-    cout<<"Finished fetching the first record from each page.Stored in the queue."<<endl;
+//    cout<<"Finished fetching the first record from each page.Stored in the queue."<<endl;
     
     while(!mergeQueue.empty()){
-        cout<<"MergeRuns:Pulling each record and adding it to output pipe"<<endl;
+  //      cout<<"MergeRuns:Pulling each record and adding it to output pipe"<<endl;
         //Fetch the record from priority queue
         RecordStruct *candidate=new RecordStruct;
         candidate=mergeQueue.top();
         int runNum=candidate->run_num;
-        cout<<&candidate->record<<endl;
-        cout<<"MergeRuns:Removed a record from priority queue with run number"<<runNum<<"and "<<runArray[runNum].currentPageNumber<<endl;
+        //cout<<&candidate->record<<endl;
+        //cout<<"MergeRuns:Removed a record from priority queue with run number"<<runNum<<"and "<<runArray[runNum].currentPageNumber<<endl;
         //Delete the record from priority queue
         mergeQueue.pop();
         //Insert each record into output queue
         outPipe->Insert(&(candidate->record));
-        cout<<"MergeRuns:Inserted one record"<<endl;
-        cout<<"-------------------------------"<<endl;
+        //cout<<"MergeRuns:Inserted one record"<<endl;
+        //cout<<"-------------------------------"<<endl;
         
         
         //Get the next record from the run
         RecordStruct *nextRecord=new RecordStruct;
         if(runArray[runNum].currentPage.GetFirst(&(nextRecord->record))){
-            cout<<"GetNext:Fetched next record"<<endl;
+            //cout<<"GetNext:Fetched next record"<<endl;
             nextRecord->run_num=runNum;
             mergeQueue.push(nextRecord);
         }
@@ -205,11 +205,11 @@ int BigQ::MergeRuns(){
         //Check for more pages in the run
         else{
             //Decrement the number of pages in the run
-            cout<<"GetNext:Could not fetch a record.decrementing page number"<<endl;
+            //cout<<"GetNext:Could not fetch a record.decrementing page number"<<endl;
             runArray[runNum].totalPages--;
-            cout<<"Now total pages: "<< runArray[runNum].totalPages<<"for run number is: "<<runNum<<endl;
+            //cout<<"Now total pages: "<< runArray[runNum].totalPages<<"for run number is: "<<runNum<<endl;
             if(runArray[runNum].totalPages>0){
-                cout<<"GetNext:Additional Page exists"<<endl;
+                //cout<<"GetNext:Additional Page exists"<<endl;
                 //Increment the page number
                 runArray[runNum].currentPageNumber++;
                 //Get the next Page and set as the current page
@@ -220,11 +220,11 @@ int BigQ::MergeRuns(){
                 mergeQueue.push(nextRecord);
                 
                 //status=1;
-                cout<<"GetNext:Fetched Record from next page"<<endl;
+                //cout<<"GetNext:Fetched Record from next page"<<endl;
             }
             else{
-                cout<<"GetNext:No additional Page exists for run no: "<<runNum<<endl;
-                cout << "Run No :  " << runNum <<" exhausted" <<endl;
+                //cout<<"GetNext:No additional Page exists for run no: "<<runNum<<endl;
+                //cout << "Run No :  " << runNum <<" exhausted" <<endl;
                 //delete nextRecord;
                 numOfRuns--;
                 //status=0;
@@ -260,7 +260,7 @@ bool BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array,RecordStruct *ne
     //RecordStruct *nextRecord=new RecordStruct;
     int status;
     if(array[currentRunNumber].currentPage.GetFirst(&(nextRecord->record))){
-        cout<<"GetNext:Fetched next record"<<endl;
+        //cout<<"GetNext:Fetched next record"<<endl;
         mergeQueue.push(nextRecord);
         nextRecord->run_num=currentRunNumber;
         status=1;
@@ -268,11 +268,11 @@ bool BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array,RecordStruct *ne
     //Check for more pages in the run
     else{
         //Decrement the number of pages in the run
-        cout<<"GetNext:Could not fetch a record.decrementing page number"<<endl;
+        //cout<<"GetNext:Could not fetch a record.decrementing page number"<<endl;
         array[currentRunNumber].totalPages--;
-        cout<<"Now total pages: "<< array[currentRunNumber].totalPages<<"for run number is: "<<currentRunNumber<<endl;
+        //cout<<"Now total pages: "<< array[currentRunNumber].totalPages<<"for run number is: "<<currentRunNumber<<endl;
         if(array[currentRunNumber].totalPages>0){
-            cout<<"GetNext:Additional Page exists"<<endl;
+            //cout<<"GetNext:Additional Page exists"<<endl;
             //Increment the page number
             array[currentRunNumber].currentPageNumber++;
             //Get the next Page and set as the current page
@@ -282,11 +282,11 @@ bool BigQ::GetNextRecordFromRun(int currentRunNumber,Run *array,RecordStruct *ne
             mergeQueue.push(nextRecord);
             nextRecord->run_num=currentRunNumber;
             status=1;
-            cout<<"GetNext:Fetched Record from next page"<<endl;
+            //cout<<"GetNext:Fetched Record from next page"<<endl;
         }
         else{
-            cout<<"GetNext:No additional Page exists for run no: "<<currentRunNumber<<endl;
-            cout << "Run No :  " << currentRunNumber <<" exhausted" <<endl;
+            //cout<<"GetNext:No additional Page exists for run no: "<<currentRunNumber<<endl;
+            //cout << "Run No :  " << currentRunNumber <<" exhausted" <<endl;
             //delete nextRecord;
             status=0;
         }
