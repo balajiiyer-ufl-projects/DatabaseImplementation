@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
-#include <string.h>
 
+#include <string.h>
 #include "Comparison.h"
 
 
@@ -117,7 +117,48 @@ void OrderMaker :: Print () {
 	}
 }
 
+//Custom function
+string OrderMaker :: ToString () {
+    
+    stringstream ss;
+    ss<<numAtts<<endl;
+	for (int i = 0; i < numAtts; i++)
+	{
+		ss<< whichAtts[i]<<" ";
+		if (whichTypes[i] == Int)
+			ss<<"Int\n";
+		else if (whichTypes[i] == Double)
+			ss<<"Double\n";
+		else
+			ss<<("String\n");
+	}
+    return ss.str();
+}
 
+int OrderMaker::GetNumberOfAttributes(){
+    return numAtts;
+}
+
+void OrderMaker::SetAttributeMetadata(int numberOfAttributes,int* attArray,Type* attTypes){
+    numAtts=numberOfAttributes;
+    *whichAtts=*attArray;
+    *whichTypes=*attTypes;
+    
+    //std::copy(attArray, attArray
+              //+sizeof(attArray)/sizeof(attArray[0]), whichAtts);
+    //std::copy(attTypes, attTypes
+              //+sizeof(attTypes)/sizeof(attArray[0]), whichTypes);
+    
+    
+}
+
+int* OrderMaker::GetAttributeArray(){
+    return whichAtts;
+}
+
+Type* OrderMaker::GetAttributeTypeArray(){
+    return whichTypes;
+}
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
 

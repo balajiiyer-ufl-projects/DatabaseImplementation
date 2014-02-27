@@ -50,6 +50,8 @@ void* BigQ::CreateSortedRuns(){
     priority_queue<Record *, vector<Record *>, CompareRec> queue(sortOrder);
     file.Open(0,fileName);
     
+
+    
     while(inPipe->Remove(record)){
         recordCopy=new Record;
         //Copy the record since appending would consume the record
@@ -145,7 +147,7 @@ void* BigQ::CreateSortedRuns(){
 int BigQ::MergeRuns(){
     
     file.Open(1, fileName);
-    RecordStruct *record = new RecordStruct;
+    //RecordStruct *record = new RecordStruct;
     int numOfRuns = runIndices.size();
     Run *runArray = new Run[numOfRuns];
     priority_queue<RecordStruct *, vector<RecordStruct *>, ComparePQ> mergeQueue(sortOrder);
@@ -192,7 +194,6 @@ int BigQ::MergeRuns(){
         outPipe->Insert(&(candidate->record));
         cout<<"MergeRuns:Inserted one record"<<endl;
         cout<<"-------------------------------"<<endl;
-        
         
         //Get the next record from the run
         RecordStruct *nextRecord=new RecordStruct;

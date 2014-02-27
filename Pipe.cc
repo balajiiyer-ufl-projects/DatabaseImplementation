@@ -40,6 +40,8 @@ Pipe :: ~Pipe () {
 
 
 void Pipe :: Insert (Record *insertMe) {
+    
+    if (!done){
 
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
@@ -65,6 +67,7 @@ void Pipe :: Insert (Record *insertMe) {
 
 	// done!
 	pthread_mutex_unlock (&pipeMutex);
+    }
 }
 
 
@@ -116,6 +119,9 @@ int Pipe :: Remove (Record *removeMe) {
 	return 1;
 }
 
+void Pipe :: Open (){
+    done = 0;
+}
 
 void Pipe :: ShutDown () {
 

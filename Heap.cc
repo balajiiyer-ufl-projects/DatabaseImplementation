@@ -14,15 +14,16 @@ using namespace std;
 
 
 Heap::Heap () {
+
  
 }
 
 Heap::~Heap(){
-    
+
 }
 //Creates the file
-int Heap::Create (char *f_path, fType f_type, void *startup) {
-    
+int Heap::Create (char *f_path, void *startup) {
+    cout<<"Heap:Saving metadata"<<endl;
     //Save metadata file path name
     metadataFile=f_path;
     this->file.Open(0, f_path);

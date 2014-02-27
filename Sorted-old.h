@@ -1,5 +1,5 @@
-#ifndef HEAP_H
-#define HEAP_H
+#ifndef SORTED_H
+#define SORTED_H
 
 #include "TwoWayList.h"
 #include "Record.h"
@@ -9,13 +9,25 @@
 #include "ComparisonEngine.h"
 #include <iostream>
 #include "GenericDBFile.h"
+#include "BigQ.h"
 
 
-class Heap : public GenericDBFile {
+struct SortInfo
+{
+    OrderMaker *myOrder;
+    int runLength;
+};
+
+class Sorted : public GenericDBFile {
 
 private:
+    SortInfo *sortInfo;
+    BigQ *bigQ;
+    Pipe *inPipe;
+    Pipe *outPipe;
     File file;
     Page page;
+    bool readingMode;
     string metadataFile;
     bool isFileOpen;
     int currentPageNumber;
@@ -26,8 +38,8 @@ private:
     
     
 public:
-	Heap ();
-    ~Heap();
+	Sorted ();
+    ~Sorted();
     
 	int Create (char *fpath, void *startup);
 	int Open (char *fpath);
@@ -39,7 +51,8 @@ public:
 	void Add (Record &addme);
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
-    void WritePageToFileIfDirty(Page* page, int);
+    void WritePageToFileIfDirty();
+    bool InsertIntoBigQ();
     //Returns the metadata file name
     inline string GetMetadataFile(){
         return metadataFile;

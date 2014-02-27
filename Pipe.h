@@ -37,6 +37,9 @@ public:
 	// Note that the parameter is consumed; after insertion, it can
 	// no longer be used and will be zero'ed out
 	void Insert (Record *insertMe);
+    
+    //This opens the previously shut down Pipe
+    void Open ();
 
 	// This removes a record from the pipeline and puts it into the
 	// argument.  Note that whatever was in the parameter before the

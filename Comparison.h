@@ -6,6 +6,7 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include <sstream>
 
 
 // This stores an individual comparison that is part of a CNF
@@ -59,6 +60,13 @@ public:
 
 	// print to the screen
 	void Print ();
+    std::string ToString();
+    int GetNumberOfAttributes();
+    void SetAttributeMetadata(int numberOfAttributes,int* attArray,Type* attTypes);
+    int* GetAttributeArray();
+    Type* GetAttributeTypeArray();
+    
+    
 };
 
 class Record;

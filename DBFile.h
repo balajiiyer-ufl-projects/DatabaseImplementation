@@ -7,6 +7,9 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include "GenericDBFile.h"
+#include "Heap.h"
+#include "Sorted.h"
 
 typedef enum {heap, sorted, tree} fType;
 
@@ -14,16 +17,14 @@ typedef enum {heap, sorted, tree} fType;
 // stub DBFile header..replace it with your own DBFile.h
 
 class DBFile {
-	File file;
-	Page page;
-	int currentPageNumber;
-	bool isPageDirty;
+private:
+    GenericDBFile* myInternalVar;
     
     
 public:
 	
 	DBFile ();
-    
+    ~DBFile();
     	int Create (char *fpath, fType file_type, void *startup);
 	int Open (char *fpath);
 	int Close ();
