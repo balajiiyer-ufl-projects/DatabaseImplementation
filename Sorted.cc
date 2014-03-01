@@ -18,8 +18,15 @@ using namespace std;
 
 
 Sorted::Sorted () {
+    int buffsz = 100; // pipe cache size
     numRecsInPipe=0;
     readingMode=false;
+    Pipe input (buffsz);
+	Pipe output (buffsz);
+    //inPipe = new Pipe(buffSize);
+    //outPipe = new Pipe (buffSize);
+    inPipe=&input;
+    outPipe=&output;
 }
 
 Sorted::~Sorted(){
@@ -150,8 +157,7 @@ void Sorted::Add (Record &rec) {
      */
     readingMode=false;
     int buffSize = 100;
-    inPipe = new Pipe(buffSize);
-    outPipe = new Pipe (buffSize);
+    
     
 	if(numRecsInPipe/100000 == 1){
 		
@@ -186,7 +192,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
     
     /*This file is created just for merging.*/
     char *mergeFileName="mergedFile.bin";
-    File *mergeFile = new File;
+    
     
     int pagesTotal=0;
     
@@ -194,7 +200,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
     if(file.GetLength() != 0){
         
         pagesTotal=file.GetLength()-1;
-        mergeFile->Open(0, mergeFileName);
+        mergeFile.Open(0, mergeFileName);
         RecordStructForSorted *pipeRecStruct, *fileRecStruct,*nextRecStruct;
         Record *pipeRec = new Record;
         Record *fileRec = new Record;
@@ -256,16 +262,16 @@ void Sorted :: MergeRecordsWithSortedFile(){
             }
             
         }//End of while
-        delete pipeRec;
-        delete fileRec;
-        delete nextRec;
+        //delete pipeRec;
+        //delete fileRec;
+        //delete nextRec;
         
-        std::ifstream  src("mergedFile.bin", std::ios::binary);
-        std::ofstream  dst(fileName,std::ios::binary);
-        
-        dst << src.rdbuf();
-        
-        remove(mergeFileName);
+//        std::ifstream  src("mergedFile.bin", std::ios::binary);
+//        std::ofstream  dst(fileName,std::ios::binary);
+//        
+//        dst << src.rdbuf();
+//        
+//        remove(mergeFileName);
         
         //        /*copy the data to original location.
         //         Delete merge file when job is done*/
@@ -291,6 +297,13 @@ void Sorted :: MergeRecordsWithSortedFile(){
         }
         
     }
+    //Should it be here?
+    std::ifstream  src("mergedFile.bin", std::ios::binary);
+    std::ofstream  dst(fileName,std::ios::binary);
+    
+    dst << src.rdbuf();
+    
+    remove(mergeFileName);
     
 }
 
@@ -376,11 +389,14 @@ void Sorted:: InsertRecordIntoFile(Record &rec){
     
 	/*Check if the page is full before adding a record*/
 
-    int pagesTotal=file.GetLength()-1;
+    int pagesTotal=mergeFile.GetLength()-1;
+    if(pagesTotal==-1){
+        pagesTotal=0;
+    }
 	if(!this->page.Append(&rec)){
         
         
-        file.AddPage(&page,pagesTotal);
+        mergeFile.AddPage(&page,pagesTotal);
         pagesTotal++;
         page.EmptyItOut();
         
@@ -398,7 +414,7 @@ void Sorted:: InsertRecordIntoFile(Record &rec){
 		//this->isPageDirty = true;
         
 	}
-    file.AddPage(&page, pagesTotal);
+    mergeFile.AddPage(&page, pagesTotal);
     //    else{
     //		//cout << "Records appended" << endl;
     //		/*This means record is appended so set page as dirty*/

@@ -56,6 +56,7 @@ private:
     Pipe *inPipe;
     Pipe *outPipe;
     File file;
+    File mergeFile;
     Page page;
     bool readingMode;
     string metadataFile;
