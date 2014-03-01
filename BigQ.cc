@@ -38,7 +38,7 @@ void* BigQ::GenerateRuns(void *ptr){
 
 void* BigQ::CreateSortedRuns(){
     
-	//cout << "Inside create sorted runs" <<endl;
+	cout << "Inside create sorted runs" <<endl;
     fileName="runFile.bin"; //probably requires timeStamp;
     
     pageCountPerRun=0;//Stores the page count per run
@@ -51,8 +51,12 @@ void* BigQ::CreateSortedRuns(){
     file.Open(0,fileName);
     
 
-    
-    while(inPipe->Remove(record)){
+    cout<<"BigQ :Removing from the inputpipe"<<endl;
+
+	if(inPipe){
+cout<<"Input pipe object exist"<<endl;
+}    
+while(inPipe->Remove(record)){
         recordCopy=new Record;
         //Copy the record since appending would consume the record
         
@@ -60,13 +64,13 @@ void* BigQ::CreateSortedRuns(){
         
         queue.push(recordCopy);
         
-        
+    
         if(!pagesForRunlength.Append(record)){
-            //cout << "Page is completed in the run"<< endl;
+            cout << "Page is completed in the run"<< endl;
             pageCountPerRun++;
             //pageCountPerRun is required to compare with runlength
             if(runLength==pageCountPerRun){
-                //cout << "One run is complete" <<endl;
+                cout << "One run is complete" <<endl;
                 Page page;
                 int pageCount=0;
                 //Store the page count per run
@@ -104,10 +108,13 @@ void* BigQ::CreateSortedRuns(){
         }
         
     }
+	cout<<"Deleting record"<<endl;
     //Delete record
     delete record;
+cout<<"BigQ : deleting the record object"<<endl;
     //If queue still contains record,append it to a new run
     if(queue.size()!=0){
+cout<<"Run lenghth HAS NOT reached.Queue contains more records"<<endl;
         Page page;
         pageCountPerRun=0;
         while(queue.size()!=0){
@@ -132,11 +139,12 @@ void* BigQ::CreateSortedRuns(){
         queue.empty();
         
     }
+	
     runIndices.push_back(pageCountPerRun);
     for (int i = 0; i < runIndices.size(); i++) {
-        //cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
+        cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
     }
-    //cout<<"File length - 1= "<<file.GetLength()-1;
+    cout<<"File length - 1= "<<file.GetLength()-1;
     file.Close();
     
     // construct priority queue over sorted runs and dump sorted data

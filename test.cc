@@ -4,8 +4,12 @@
 void test1 ();
 void test2 ();
 void test3 ();
+#define DEBUG
 
 int add_data (FILE *src, int numrecs, int &res) {
+    #ifdef DEBUG
+	cout<<"Test.cc:Inside add_data"<<endl;
+    #endif
 	DBFile dbfile;
 	dbfile.Open (rel->path ());
 	Record temp;

@@ -10,6 +10,10 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <ctime>
+#include <sys/time.h>
+#define DEBUG
+#define BUFF_SIZE 100
 
 
 //Just a simple copy of Heap.cc.
@@ -18,24 +22,25 @@ using namespace std;
 
 
 Sorted::Sorted () {
-    int buffsz = 100; // pipe cache size
     numRecsInPipe=0;
-    readingMode=false;
-    Pipe input (buffsz);
-	Pipe output (buffsz);
-    //inPipe = new Pipe(buffSize);
-    //outPipe = new Pipe (buffSize);
-    inPipe=&input;
-    outPipe=&output;
+    readingMode=true;
+    inPipe = new Pipe(BUFF_SIZE);
+    outPipe = new Pipe (BUFF_SIZE);
+    bigQ=NULL;
 }
 
 Sorted::~Sorted(){
+    //delete fileName;
+    //delete bigQ;
+    
     
 }
 
 //Create Done
 int Sorted::Create (char *f_path, void *startup) {
+#ifdef DEBUG
     cout<<"Sorted:Saving Metadata"<<endl;
+#endif
     //Save metadata file path name
     metadataFile=f_path;
     
@@ -50,9 +55,7 @@ int Sorted::Create (char *f_path, void *startup) {
         return 0;
     this->isPageDirty=false;
     this->currentPageNumber=1;
-    
-    
-    
+    //Save metadata to file
     WriteMetadata();
     return 1;
 }
@@ -86,9 +89,9 @@ int Sorted::Open (char *f_path) {
     cout<<"Sorted:Opening a sorted file"<<endl;
     string fileType;
     string type;
-    string metadataFilePath=f_path;
+   	metadataFile=f_path;
     int numberOfAttributes;
-    metadataFilePath=metadataFilePath+".metadata";
+    string metadataFilePath=metadataFile+".metadata";
     ifstream readMetadata;
     
     readMetadata.open(metadataFilePath.c_str());
@@ -137,14 +140,22 @@ int Sorted::Open (char *f_path) {
 
 void Sorted::MoveFirst () {
     /*Since we are moving to the first page, page number is 1*/
-    MergeRecordsWithSortedFile();
-    file.GetLength();
+    //MergeRecordsWithSortedFile();
+    
+    cout<<"File length"<<file.GetLength()<<endl;
     this->file.GetPage(&this->page, 0);
     this->currentPageNumber = 1;
 }
 
 int Sorted::Close () {
-    MergeRecordsWithSortedFile();
+#ifdef DEBUG
+    cout<<"Sorted:Calling close"<<endl;
+#endif
+    if(isPageDirty){
+        //WritePageToFileIfDirty(&page);
+        //While closing merge records in sorted file
+        MergeRecordsWithSortedFile();
+    }
     //readingMode=true;
     //WritePageToFileIfDirty(&this->page, this->currentPageNumber);
     return this->file.Close();
@@ -155,25 +166,32 @@ void Sorted::Add (Record &rec) {
     /**
      initialize the big queue instance
      */
-    readingMode=false;
-    int buffSize = 100;
+    if(readingMode){
+        readingMode=false;
+    }
     
-    
-	if(numRecsInPipe/100000 == 1){
+    //Declared BUFF SIZE as macro
+	if(numRecsInPipe/BUFF_SIZE == 1){
 		
         /*The input pipe is full and we need to
          merge the records into sorted file*/
         inPipe->ShutDown();
         
         MergeRecordsWithSortedFile();
-        
+        isPageDirty=false;
         /*Reset the num recs in Pipe*/
         numRecsInPipe = 0;
         
         /*Open the pipe again*/
         inPipe->Open();
         
+        /*Last recorded would not have been added
+         Hence adding it now and incrementing the count.*/
+        inPipe->Insert(&rec);
+        numRecsInPipe++;
+        
 	}else{
+        isPageDirty=true;
         inPipe->Insert(&rec);
         numRecsInPipe++;
     }
@@ -183,16 +201,40 @@ void Sorted::Add (Record &rec) {
 void Sorted :: MergeRecordsWithSortedFile(){
     
 	/*This is going to maintain the newly inputed records in the sorted order*/
+#ifdef DEBUG
+    cout<<"BigQ exists????"<<endl;
+#endif
+    isPageDirty=false;;
     
-	bigQ = new BigQ(*inPipe, *outPipe, *sortInfo->myOrder, sortInfo->runLength);
+    /*CULPRIT: The pipe has to be shutdown before bigq construction
+     If not it waits for the output pipe to remove the record and hangs*/
+    inPipe->ShutDown();
+    
+    //Create the instance only if it does not exist
+    if(!bigQ){
+    bigQ = new BigQ(*inPipe, *outPipe, *(sortInfo->myOrder), sortInfo->runLength);
+    }
+#ifdef DEBUG
+    cout<<"BigQ exists"<<endl;
+#endif
+    
     
 	/*This merge queue merges the records from already sorted file with newly added records.
      And sort order should be same as that of the sorted file*/
 	priority_queue<RecordStructForSorted *, vector<RecordStructForSorted *>, ComparePQSorted> mergeQueue(&(*sortInfo->myOrder));
     
     /*This file is created just for merging.*/
-    char *mergeFileName="mergedFile.bin";
-    
+    /*Create a new file with timestamp associated.Without timestamp
+     few irregularities appear*/
+    std::time_t seconds = std::time(0);
+    stringstream ss;
+    ss<<seconds;
+    string mFile="mergedFile"+ss.str();
+    char* mergeFileName= new char[mFile.size()+1];
+    std::copy(mFile.begin(), mFile.end(), mergeFileName);
+    mergeFileName[mFile.size()] = '\0';
+
+    mergeFile.Open(0, mergeFileName);
     
     int pagesTotal=0;
     
@@ -200,7 +242,6 @@ void Sorted :: MergeRecordsWithSortedFile(){
     if(file.GetLength() != 0){
         
         pagesTotal=file.GetLength()-1;
-        mergeFile.Open(0, mergeFileName);
         RecordStructForSorted *pipeRecStruct, *fileRecStruct,*nextRecStruct;
         Record *pipeRec = new Record;
         Record *fileRec = new Record;
@@ -236,6 +277,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
             mergeQueue.pop();
             
             /*insert the record into the merge file using similar function as heap*/
+            
             InsertRecordIntoFile(candidate->record);
             
             /*Pull the next record from the same source*/
@@ -266,12 +308,13 @@ void Sorted :: MergeRecordsWithSortedFile(){
         //delete fileRec;
         //delete nextRec;
         
-//        std::ifstream  src("mergedFile.bin", std::ios::binary);
-//        std::ofstream  dst(fileName,std::ios::binary);
-//        
-//        dst << src.rdbuf();
-//        
-//        remove(mergeFileName);
+        /*CULPRIT:Writing the file has to happen after else part*/
+        //        std::ifstream  src("mergedFile.bin", std::ios::binary);
+        //        std::ofstream  dst(fileName,std::ios::binary);
+        //
+        //        dst << src.rdbuf();
+        //
+        //        remove(mergeFileName);
         
         //        /*copy the data to original location.
         //         Delete merge file when job is done*/
@@ -293,17 +336,46 @@ void Sorted :: MergeRecordsWithSortedFile(){
              function as heap. We need not create the merge file,
              since there is no original sorted file*/
             InsertRecordIntoFile(*rec);
-            rec = new Record;
+            //rec = new Record;
         }
         
     }
-    //Should it be here?
-    std::ifstream  src("mergedFile.bin", std::ios::binary);
-    std::ofstream  dst(fileName,std::ios::binary);
+    /*CULPRIT: Write the last page to file after insertion*/
+    WritePageToFileIfDirty(&(this->page));
+    /*CULPRIT: If the file is not closed,then changes are not reflected 
+     in sorted file such as fetching filelength always returns 0*/
+        mergeFile.Close();
     
-    dst << src.rdbuf();
+    //if(mergeFile.GetLength()!=0)
+	{
+        if(remove(metadataFile.c_str())!=0){
+            perror( "Error deleting old sorted file" );
+        }
+    }
+    if(rename(mergeFileName,metadataFile.c_str())!=0){
+        perror( "Error renaming merged file " );
+    }
     
-    remove(mergeFileName);
+    delete bigQ;
+    bigQ=NULL;
+    //    cout<<"Now old file length is: "<<file.GetLength()<<endl;
+    //    char* c= new char[metadataFile.size()+1];
+    //    std::copy(metadataFile.begin(), metadataFile.end(), c);
+    //    c[metadataFile.size()] = '\0';
+    //    file.Open(1, c);
+    //    cout<<"Now new file length after opening again is: "<<file.GetLength()<<endl;
+    
+    //Delete bigQ?
+    //Reset queryordermarker?
+    
+    //
+    //    //Should it be here?
+    // std::ifstream  src("mergedFile.bin", std::ios::binary);
+    // std::ofstream  dst(fileName,std::ios::binary);
+    
+    //  dst << src.rdbuf();
+    
+    //  remove(mergeFileName);
     
 }
 
@@ -315,15 +387,21 @@ int Sorted::GetNext (Record &fetchme) {
      */
     if(!readingMode){
         MergeRecordsWithSortedFile();
+        isPageDirty=false;
         readingMode=true;
     }
     int noOfPagesInFile = (this->file.GetLength()) - 1;
     /*Decrementing the length by 1 because first page of the file
      does not contain the data*/
+	cout<<"getNext: no of pages in file"<<noOfPagesInFile<<endl;
+	cout<<"currentPageNumber"<<currentPageNumber<<endl;
     
+    if(currentPageNumber==0){
+        file.GetPage(&page, currentPageNumber);
+    }
     //	cout<< "File length is :: " << noOfPagesInFile <<endl;
     if(this->page.GetFirst (&fetchme)){
-        //		cout << "Should print records" <<endl;
+        cout << "Fetching first record" <<endl;
         return 1;
     }else{
         
@@ -367,13 +445,19 @@ int Sorted::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 }
 
 /*This function writes a page to the disk ONLY if it is dirty*/
-void Sorted:: WritePageToFileIfDirty(Page* page){
+void Sorted:: WritePageToFileIfDirty(Page* mergePage){
     
-    
+#ifdef DEBUG
+    cout<<"Writing dirty page to merge file"<<endl;
+#endif
     /*Write dirty page to the file*/
     if(this->isPageDirty){
-        int whichPage = (int)file.GetLength() + 1;
-        this->file.AddPage(page, whichPage);
+        int whichPage = (int)mergeFile.GetLength()-1;
+        if(whichPage==-1){
+            whichPage=0;
+        }
+        this->mergeFile.AddPage(mergePage, whichPage);
+        mergePage->EmptyItOut();
         this->page.EmptyItOut();
     }
     
@@ -388,20 +472,20 @@ void Sorted:: InsertRecordIntoFile(Record &rec){
      still page is not full. Calling function should take care of it*/
     
 	/*Check if the page is full before adding a record*/
-
-    int pagesTotal=mergeFile.GetLength()-1;
-    if(pagesTotal==-1){
-        pagesTotal=0;
-    }
+    
+//    int pagesTotal=mergeFile.GetLength()-1;
+//    if(pagesTotal==-1){
+//        pagesTotal=0;
+//    }
 	if(!this->page.Append(&rec)){
         
         
-        mergeFile.AddPage(&page,pagesTotal);
-        pagesTotal++;
-        page.EmptyItOut();
+        //mergeFile.AddPage(&page,pagesTotal);
+        //pagesTotal++;
+        //page.EmptyItOut();
         
-		//WritePageToFileIfDirty(&this->page);
-		//cout << "Page is full.Appending the record to next page."<<endl;
+		WritePageToFileIfDirty(&this->page);
+		cout << "Page is full.Appending the record to next page."<<endl;
         
 		/*Here, File::GetPage function can't be called. This is because
          that function returns an existing page whereas here we are adding a new page.
@@ -411,15 +495,15 @@ void Sorted:: InsertRecordIntoFile(Record &rec){
 		/*Now load further records*/
 		this->page.Append(&rec);
 		/*Since we added a record, we should set page as dirty*/
-		//this->isPageDirty = true;
+		this->isPageDirty = true;
         
 	}
-    mergeFile.AddPage(&page, pagesTotal);
-    //    else{
-    //		//cout << "Records appended" << endl;
-    //		/*This means record is appended so set page as dirty*/
-    //		this->isPageDirty = true;
-    //	}
+   
+    else{
+        //cout << "Records appended" << endl;
+        /*This means record is appended so set page as dirty*/
+        this->isPageDirty = true;
+    }
     
     
 }
@@ -436,5 +520,7 @@ void Sorted::WriteMetadata(){
         outputStream<<sortInfo->myOrder->ToString();
         outputStream.close();
     }
-    
+   
+
 }
+

@@ -66,7 +66,7 @@ int Page :: GetFirst (Record *firstOne) {
 int Page :: Append (Record *addMe) {
    
 	char *b = addMe->GetBits();
-    
+   cout<<"Appending record to page"<<endl; 
     // first see if we can fit the record
     if (curSizeInBytes + ((int *) b)[0] > PAGE_SIZE) {
         return 0;
@@ -79,7 +79,7 @@ int Page :: Append (Record *addMe) {
     curSizeInBytes += ((int *) b)[0];
     myRecs->Insert(addMe);
     numRecs++;
-    
+    cout<<"Added succ...record"<<endl;
     return 1;
 }
 
