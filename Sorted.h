@@ -58,16 +58,24 @@ private:
     File file;
     File mergeFile;
     Page page;
+    Page mergePage;
     bool readingMode;
     string metadataFile;
     bool isFileOpen;
     int currentPageNumber;
+    int currentMergePageNumber;
     int lastPageNumber;
+    int numRecsIn;
     char* fileName;
     bool isPageDirty;
     void WriteMetadata();
     /*Maintains number of records in the input pipe*/
     int numRecsInPipe;
+    int getnextcount;
+    bool pageExists;
+    bool queryCreated;
+    OrderMaker *queryMaker;
+    bool pageFound;
     
     
 public:
@@ -82,16 +90,23 @@ public:
     
 	void MoveFirst ();
 	void Add (Record &addme);
+    int GetNextRecord (Record &fetchme);
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
-    void WritePageToFileIfDirty(Page *page);
+    void WritePageToFileIfDirty(Page* tempPage);
     void MergeRecordsWithSortedFile();
     void InsertRecordIntoFile(Record &rec);
+    int PageLoad(Record&lit);
+    int BinarySearch(int low, int high, Record&lit, int pageNum);
+    void SetState(Page& page, int& pageNumber);
+    void GetState(Page& page, int& pageNumber);
+    int FetchNextFromFile (Record &fetchme);
     //Returns the metadata file name
     inline string GetMetadataFile(){
         return metadataFile;
     }
-
+    
+    
     
 };
 #endif

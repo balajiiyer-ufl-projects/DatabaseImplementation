@@ -18,14 +18,23 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     
     //Main thread would wait till sorting is done and the records are inserted to output
     //pipe
-    pthread_join(sortingThread, &ret);
+    //pthread_join(sortingThread, &ret);
     // finally shut down the out pipe
-	out.ShutDown ();
+	//out.ShutDown ();
 }
 
 
 
 BigQ::~BigQ () {
+    
+    string mFile="runFile.bin";
+    char* runFile= new char[mFile.size()+1];
+    std::copy(mFile.begin(), mFile.end(), runFile);
+    runFile[mFile.size()] = '\0';
+    if(remove(runFile)){
+        perror("error in removing old file");
+    }
+    
 }
 
 void* BigQ::GenerateRuns(void *ptr){
@@ -38,7 +47,7 @@ void* BigQ::GenerateRuns(void *ptr){
 
 void* BigQ::CreateSortedRuns(){
     
-	cout << "Inside create sorted runs" <<endl;
+	//cout << "Inside create sorted runs" <<endl;
     fileName="runFile.bin"; //probably requires timeStamp;
     
     pageCountPerRun=0;//Stores the page count per run
@@ -50,13 +59,13 @@ void* BigQ::CreateSortedRuns(){
     priority_queue<Record *, vector<Record *>, CompareRec> queue(sortOrder);
     file.Open(0,fileName);
     
-
-    cout<<"BigQ :Removing from the inputpipe"<<endl;
-
+    
+    //cout<<"BigQ :Removing from the inputpipe"<<endl;
+    
 	if(inPipe){
-cout<<"Input pipe object exist"<<endl;
-}    
-while(inPipe->Remove(record)){
+        //cout<<"Input pipe object exist"<<endl;
+    }
+    while(inPipe->Remove(record)){
         recordCopy=new Record;
         //Copy the record since appending would consume the record
         
@@ -64,13 +73,13 @@ while(inPipe->Remove(record)){
         
         queue.push(recordCopy);
         
-    
+        
         if(!pagesForRunlength.Append(record)){
-            cout << "Page is completed in the run"<< endl;
+//            cout << "Page is completed in the run"<< endl;
             pageCountPerRun++;
             //pageCountPerRun is required to compare with runlength
             if(runLength==pageCountPerRun){
-                cout << "One run is complete" <<endl;
+               // cout << "One run is complete" <<endl;
                 Page page;
                 int pageCount=0;
                 //Store the page count per run
@@ -108,13 +117,13 @@ while(inPipe->Remove(record)){
         }
         
     }
-	cout<<"Deleting record"<<endl;
+	//cout<<"Deleting record"<<endl;
     //Delete record
     delete record;
-cout<<"BigQ : deleting the record object"<<endl;
+    //cout<<"BigQ : deleting the record object"<<endl;
     //If queue still contains record,append it to a new run
     if(queue.size()!=0){
-cout<<"Run lenghth HAS NOT reached.Queue contains more records"<<endl;
+//        cout<<"Run lenghth HAS NOT reached.Queue contains more records"<<endl;
         Page page;
         pageCountPerRun=0;
         while(queue.size()!=0){
@@ -142,15 +151,17 @@ cout<<"Run lenghth HAS NOT reached.Queue contains more records"<<endl;
 	
     runIndices.push_back(pageCountPerRun);
     for (int i = 0; i < runIndices.size(); i++) {
-        cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
+        //cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
     }
-    cout<<"File length - 1= "<<file.GetLength()-1;
+    //cout<<"File length - 1= "<<file.GetLength()-1;
     file.Close();
     
     // construct priority queue over sorted runs and dump sorted data
  	// into the out pipe
     MergeRuns();
-    
+    outPipe->ShutDown();
+
+
 }
 int BigQ::MergeRuns(){
     
@@ -186,10 +197,10 @@ int BigQ::MergeRuns(){
         mergeQueue.push(record);
         
     }
-//    cout<<"Finished fetching the first record from each page.Stored in the queue."<<endl;
+    //    cout<<"Finished fetching the first record from each page.Stored in the queue."<<endl;
     
     while(!mergeQueue.empty()){
-  //      cout<<"MergeRuns:Pulling each record and adding it to output pipe"<<endl;
+        //      cout<<"MergeRuns:Pulling each record and adding it to output pipe"<<endl;
         //Fetch the record from priority queue
         RecordStruct *candidate=new RecordStruct;
         candidate=mergeQueue.top();

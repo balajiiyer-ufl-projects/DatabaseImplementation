@@ -16,12 +16,23 @@ int add_data (FILE *src, int numrecs, int &res) {
 
 	int proc = 0;
 	int xx = 20000;
-	while ((res = temp.SuckNextRecord (rel->schema (), src)) && ++proc < numrecs) {
+/*	while ((res = temp.SuckNextRecord (rel->schema (), src)) && proc++ < numrecs) {
 		dbfile.Add (temp);
 		if (proc == xx) cerr << "\t ";
 		if (proc % xx == 0) cerr << ".";
-	}
-
+	}*/
+    while(1) {
+		if ((proc+1) != numrecs) {
+            proc++;
+		}
+		else { break; }
+		if((res = temp.SuckNextRecord (rel->schema (), src))) {
+            dbfile.Add (temp);
+            if (proc == xx) cerr << "\t ";
+            if (proc % xx == 0) cerr << ".";
+		}
+		else { break; }
+      }
 	dbfile.Close ();
 	return proc;
 }
