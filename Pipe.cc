@@ -1,8 +1,7 @@
 #include "Pipe.h"
 
-#include <iostream>
-#include <stdlib.h> 
-
+#include <iostream> 
+#include <stdlib.h>
 
 Pipe :: Pipe (int bufferSize) {
 
@@ -29,22 +28,16 @@ Pipe :: Pipe (int bufferSize) {
 }
 
 Pipe :: ~Pipe () {
-
 	// free everything up!
 	delete [] buffered;
 
 	pthread_mutex_destroy (&pipeMutex);
 	pthread_cond_destroy (&producerVar);
 	pthread_cond_destroy (&consumerVar);
-	
 }
 
 
 void Pipe :: Insert (Record *insertMe) {
-#ifdef DEBUG
-	//cout<<"Pipe : Inserting record"<<endl;
-#endif
-    if (!done){
 
 	// first, get a mutex on the pipeline
 	pthread_mutex_lock (&pipeMutex);
@@ -53,8 +46,7 @@ void Pipe :: Insert (Record *insertMe) {
 	// there is, then do the insertion
 	if (lastSlot - firstSlot < totSpace) {
 		buffered [lastSlot % totSpace].Consume (insertMe);
-        
-	//cout<<"Pipe: Insertion done"<<endl;
+
 	// if there is not, then we need to wait until the consumer
 	// frees up some space in the pipeline
 	} else {
@@ -64,14 +56,13 @@ void Pipe :: Insert (Record *insertMe) {
 	
 	// note that we have added a new record
 	lastSlot++;
-	//cout<<"Pipe : No of records inserted="<<lastSlot<<endl;
+
 	// signal the consumer who might now want to suck up the new
 	// record that has been added to the pipeline
 	pthread_cond_signal (&consumerVar);
 
 	// done!
 	pthread_mutex_unlock (&pipeMutex);
-    }
 }
 
 
@@ -83,7 +74,7 @@ int Pipe :: Remove (Record *removeMe) {
 	// next, see if there is anything in the pipeline; if
 	// there is, then do the removal
 	if (lastSlot != firstSlot) {
-		//cout<<"Pipe :Record is present in the pipe"<<endl;
+		
 		removeMe->Consume (&buffered [firstSlot % totSpace]);
 
 	// if there is not, then we need to wait until the producer
@@ -99,9 +90,8 @@ int Pipe :: Remove (Record *removeMe) {
 		}
 
 		// wait until there is something there
-		//cout<<"Waiting in pthread remove"<<endl;
 		pthread_cond_wait (&consumerVar, &pipeMutex);
-		//cout<<"Not reachable"<<endl;
+
 		// since the producer may have decided to turn off
 		// the pipe, we need to check if it is still open
 		if (done && lastSlot == firstSlot) {
@@ -114,20 +104,16 @@ int Pipe :: Remove (Record *removeMe) {
 	
 	// note that we have deleted a record
 	firstSlot++;
-	//cout<<"Deleted a record.First slot advanced"<<endl;
+
 	// signal the producer who might now want to take the slot
 	// that has been freed up by the deletion
 	pthread_cond_signal (&producerVar);
 	
 	// done!
 	pthread_mutex_unlock (&pipeMutex);
-	//cout<<"Pipe : returning 1"<<endl;
 	return 1;
 }
 
-void Pipe :: Open (){
-    done = 0;
-}
 
 void Pipe :: ShutDown () {
 
