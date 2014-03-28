@@ -75,11 +75,11 @@ void* BigQ::CreateSortedRuns(){
         
         
         if(!pagesForRunlength.Append(record)){
-//            cout << "Page is completed in the run"<< endl;
+            //cout << "Page is completed in the run"<< endl;
             pageCountPerRun++;
             //pageCountPerRun is required to compare with runlength
             if(runLength==pageCountPerRun){
-               // cout << "One run is complete" <<endl;
+                //cout << "One run is complete" <<endl;
                 Page page;
                 int pageCount=0;
                 //Store the page count per run
@@ -123,7 +123,7 @@ void* BigQ::CreateSortedRuns(){
     //cout<<"BigQ : deleting the record object"<<endl;
     //If queue still contains record,append it to a new run
     if(queue.size()!=0){
-//        cout<<"Run lenghth HAS NOT reached.Queue contains more records"<<endl;
+        //cout<<"Run lenghth HAS NOT reached.Queue contains more records"<<endl;
         Page page;
         pageCountPerRun=0;
         while(queue.size()!=0){
@@ -151,7 +151,7 @@ void* BigQ::CreateSortedRuns(){
 	
     runIndices.push_back(pageCountPerRun);
     for (int i = 0; i < runIndices.size(); i++) {
-        //cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
+       // cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
     }
     //cout<<"File length - 1= "<<file.GetLength()-1;
     file.Close();

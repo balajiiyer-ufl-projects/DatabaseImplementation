@@ -69,7 +69,7 @@ int Heap::Open (char *f_path) {
 //Moves the pointer to point to the first record
 void Heap::MoveFirst () {
     /*Since we are moving to the first page, page number is 1*/
-    this->file.GetPage(&this->page, 1);
+    this->file.GetPage(&this->page, 0);
     this->currentPageNumber = 1;
 }
 
@@ -141,13 +141,14 @@ int Heap::GetNext (Record &fetchme) {
          So we should move to next page
          */
 		this->page.EmptyItOut();
-		this->currentPageNumber++;
+		//this->currentPageNumber++;
         
         //		cout << "Current Page number is " <<  this->currentPageNumber << endl;
         //		cout << "No of pages in file is " <<  noOfPagesInFile << endl;
         
 		if(this->currentPageNumber < noOfPagesInFile){
 			this->file.GetPage(&this->page, this->currentPageNumber);
+            this->currentPageNumber++;
 			if(this->page.GetFirst(&fetchme)){
 				return 1;
 			}

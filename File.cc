@@ -79,7 +79,6 @@ int Page :: Append (Record *addMe) {
     curSizeInBytes += ((int *) b)[0];
     myRecs->Insert(addMe);
     numRecs++;
-//    cout<<"Added succ...record"<<endl;
     return 1;
 }
 

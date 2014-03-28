@@ -46,7 +46,7 @@ Sorted::~Sorted(){
 //Create Done
 int Sorted::Create (char *f_path, void *startup) {
 #ifdef DEBUG
-//    cout<<"Sorted:Saving Metadata"<<endl;
+    cout<<"Sorted:Saving Metadata"<<endl;
 #endif
     //Save metadata file path name
     metadataFile=f_path;
@@ -94,7 +94,7 @@ void Sorted::Load (Schema &f_schema, char *loadpath) {
 //Open the file
 int Sorted::Open (char *f_path) {
     
-    //cout<<"Sorted:Opening a sorted file"<<endl;
+    cout<<"Sorted:Opening a sorted file"<<endl;
     string fileType;
     string type;
    	metadataFile=f_path;
@@ -103,7 +103,7 @@ int Sorted::Open (char *f_path) {
     ifstream readMetadata;
     
     readMetadata.open(metadataFilePath.c_str());
-//     if(!sortInfo)
+    // if(!sortInfo)
     {
         sortInfo=new SortInfo();
         sortInfo->myOrder=new OrderMaker();
@@ -134,12 +134,12 @@ int Sorted::Open (char *f_path) {
     }
     
     this->file.Open(1, f_path);
-    //cout<<"***********Sorted File Length after opeing the file: **********"<<file.GetLength()<<endl;
-    //cout<<"FileName: "<<f_path<<endl;
+    cout<<"***********Sorted File Length after opeing the file: **********"<<file.GetLength()<<endl;
+    cout<<"FileName: "<<f_path<<endl;
     if(this->file.GetFileStatus()<0)
         return 0;
     
-    //cout<<"File opened successfully"<<endl;
+    cout<<"File opened successfully"<<endl;
     
     //Initialize parameters
     this->isPageDirty=false;
@@ -154,7 +154,7 @@ void Sorted::MoveFirst () {
     //MergeRecordsWithSortedFile();
     if(file.GetLength()!=0) {
         queryCreated=false;
-//        cout<<"File length"<<file.GetLength()<<endl;
+        cout<<"File length"<<file.GetLength()<<endl;
         this->file.GetPage(&this->page, 0);
         this->currentPageNumber = 1;
         queryMaker=NULL;
@@ -165,7 +165,7 @@ void Sorted::MoveFirst () {
 
 int Sorted::Close () {
 #ifdef DEBUG
-    //cout<<"Sorted:Calling close"<<endl;
+    cout<<"Sorted:Calling close"<<endl;
 #endif
     if(isPageDirty){
         //WritePageToFileIfDirty(&page);
@@ -414,7 +414,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
     
     /*This is going to maintain the newly inputed records in the sorted order*/
 #ifdef DEBUG
-//    cout<<"BigQ exists????"<<endl;
+    cout<<"BigQ exists????"<<endl;
 #endif
     //isPageDirty=false;;
     
@@ -429,7 +429,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
     }
     inPipe->ShutDown();
 #ifdef DEBUG
-//    cout<<"BigQ exists"<<endl;
+    cout<<"BigQ exists"<<endl;
 #endif
     
     /*This file is created just for merging.*/
@@ -443,7 +443,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
     std::copy(mFile.begin(), mFile.end(), mergeFileName);
     mergeFileName[mFile.size()] = '\0';
 #ifdef DEBUG
-    //cout<<"*********MergingRecords :::: Sorted File Length before opening is :  "<<file.GetLength()<<endl;
+    cout<<"*********MergingRecords :::: Sorted File Length before opening is :  "<<file.GetLength()<<endl;
 #endif
     
     //file.Open(1, "supplier.bin");
@@ -457,7 +457,7 @@ void Sorted :: MergeRecordsWithSortedFile(){
         this->currentPageNumber = 1;
     }
 #ifdef DEBUG
-    //cout<<"*********MergingRecords :::: Sorted File Length after opening is :  "<<file.GetLength()<<endl;
+    cout<<"*********MergingRecords :::: Sorted File Length after opening is :  "<<file.GetLength()<<endl;
 #endif
     
     
@@ -571,11 +571,11 @@ void Sorted :: MergeRecordsWithSortedFile(){
         perror( "Error renaming merged file " );
     }
 	//file.Close();
-	//cout<<"Sorted File Length: "<<file.GetLength()<<endl;
+	cout<<"Sorted File Length: "<<file.GetLength()<<endl;
 	//file=mergeFile;
     //file.Open(1,const_cast<char*>(metadataFile.c_str()));
     //cout<<"Number of records added in this session is : "<<numRecsInPipe<<endl;
-    //cout<<"Number of records added in this session is : "<<numRecsInPipe<<"  Added to pipe "<<numRecsIn<<"  get next calls"<<getnextcount<<endl;
+    cout<<"Number of records added in this session is : "<<numRecsInPipe<<"  Added to pipe "<<numRecsIn<<"  get next calls"<<getnextcount<<endl;
     delete bigQ;
     bigQ=NULL;
     queryMaker = NULL;
@@ -603,12 +603,12 @@ void Sorted :: MergeRecordsWithSortedFile(){
 }
 
 int Sorted::GetNextRecord (Record &fetchme) {
-    //cout<<"GetNextRecord:Fetching next record from file"<<endl;
+    cout<<"GetNextRecord:Fetching next record from file"<<endl;
     int noOfPagesInFile =(int) this->file.GetLength()-1;
     /*Decrementing the length by 1 because first page of the file
      does not contain the data*/
-	//cout<<"getNext: no of pages in file"<<noOfPagesInFile<<endl;
-	//cout<<"currentPageNumber"<<currentPageNumber<<endl;
+	cout<<"getNext: no of pages in file"<<noOfPagesInFile<<endl;
+	cout<<"currentPageNumber"<<currentPageNumber<<endl;
     
     if(currentPageNumber==0){
         this->file.GetPage(&this->page, currentPageNumber);
@@ -616,7 +616,7 @@ int Sorted::GetNextRecord (Record &fetchme) {
     //	cout<< "File length is :: " << noOfPagesInFile <<endl;
     if(this->page.GetFirst (&fetchme)){
         getnextcount++;
-        //cout << "Fetching first record" <<endl;
+        cout << "Fetching first record" <<endl;
         return 1;
     }else{
         
@@ -634,7 +634,7 @@ int Sorted::GetNextRecord (Record &fetchme) {
             this->currentPageNumber++;
             if(this->page.GetFirst(&fetchme)){
                 getnextcount++;
-                //cout<<"GetNextRecord:Got a record.returning it"<<endl;
+                cout<<"GetNextRecord:Got a record.returning it"<<endl;
                 return 1;
             }
             else{
@@ -786,7 +786,7 @@ int Sorted::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
         queryMaker=cnf.CreateQueryMaker(*(sortInfo->myOrder));
         queryCreated=true;
         if(queryMaker==NULL){
-//            cout<<"Query Maker is Null";
+            cout<<"Query Maker is Null";
         }
     }
     
@@ -940,8 +940,8 @@ int Sorted::BinarySearch(int low, int high, Record &literal, int pageNumber)
 void Sorted:: WritePageToFileIfDirty(Page* tempPage){
     
 #ifdef DEBUG
-//    cout<<"Writing dirty page to merge file"<<endl;
-//    cout<<"********Merge file length before adding: "<<this->mergeFile.GetLength()<<endl;
+    cout<<"Writing dirty page to merge file"<<endl;
+    cout<<"********Merge file length before adding: "<<this->mergeFile.GetLength()<<endl;
 #endif
     /*Write dirty page to the file*/
     if(this->isPageDirty){
@@ -951,11 +951,11 @@ void Sorted:: WritePageToFileIfDirty(Page* tempPage){
             whichPage=0;
         }
         
-        //cout<<"File Status: "<<mergeFile.GetFileStatus()<<endl;
-        //cout<<"Size: "<<tempPage->GetCurSize()<<endl;
-        //cout<<"NumRecords: "<<tempPage->GetNumRecs()<<endl;
+        cout<<"File Status: "<<mergeFile.GetFileStatus()<<endl;
+        cout<<"Size: "<<tempPage->GetCurSize()<<endl;
+        cout<<"NumRecords: "<<tempPage->GetNumRecs()<<endl;
         this->mergeFile.AddPage(tempPage, whichPage);
-        //cout<<"WriteingDirtyPage: Merge File Length after adding a page: "<<this->mergeFile.GetLength()<<endl;
+        cout<<"WriteingDirtyPage: Merge File Length after adding a page: "<<this->mergeFile.GetLength()<<endl;
         tempPage->EmptyItOut();
         this->mergePage.EmptyItOut();
         this->isPageDirty=false;
@@ -987,7 +987,7 @@ void Sorted:: InsertRecordIntoFile(Record &rec){
         //mergeFile.AddPage(&page,pagesTotal);
         //pagesTotal++;
         //page.EmptyItOut();
-        //cout << "Page is full.Appending the record to next page."<<endl;
+        cout << "Page is full.Appending the record to next page."<<endl;
 		WritePageToFileIfDirty(&(this->mergePage));
         
         

@@ -8,7 +8,7 @@ Attribute SA = {"string", String};
 Attribute DA = {"double", Double};
 
 int clear_pipe (Pipe &in_pipe, Schema *schema, bool print) {
-	Record rec;
+   	Record rec;
 	int cnt = 0;
 	while (in_pipe.Remove (&rec)) {
 		if (print) {
@@ -96,10 +96,8 @@ void q1 () {
 
 	char *pred_ps = "(ps_supplycost < 1.03)";
 	init_SF_ps (pred_ps, 100);
-
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
 	SF_ps.WaitUntilDone ();
-
 	int cnt = clear_pipe (_ps, ps->schema (), true);
 	cout << "\n\n query1 returned " << cnt << " records \n";
 
@@ -129,8 +127,8 @@ void q2 () {
 
 	Attribute att3[] = {IA, SA, DA};
 	Schema out_sch ("out_sch", numAttsOut, att3);
-	int cnt = clear_pipe (_p, p->schema (), true);
-
+	//int cnt = clear_pipe (_p, p->schema (), true);
+    int cnt = clear_pipe (_out, &out_sch, true);
 	cout << "\n\n query2 returned " << cnt << " records \n";
 
 	dbf_p.Close ();
@@ -241,7 +239,7 @@ void q5 () {
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
 	P_ps.Run (_ps, __ps, keepMe, numAttsIn, numAttsOut);
 	D.Run (__ps, ___ps,__ps_sch);
-	W.Run (___ps, writefile, __ps_sch);
+	//W.Run (___ps, writefile, __ps_sch);
 
 	SF_ps.WaitUntilDone ();
 	P_ps.WaitUntilDone ();

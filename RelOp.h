@@ -19,40 +19,73 @@ class RelationalOp {
 class SelectFile : public RelationalOp { 
 
 	private:
-	// pthread_t thread;
+	pthread_t thread;
 	// Record *buffer;
+    
+    DBFile *inputFile;
+    Pipe *outputPipe;
+    CNF cnf;
+    Record recLiteral;
 
 	public:
 
 	void Run (DBFile &inFile, Pipe &outPipe, CNF &selOp, Record &literal);
 	void WaitUntilDone ();
 	void Use_n_Pages (int n);
+    static void *GetDataFromFileToPipe(void *ptr);
 
 };
 
 class SelectPipe : public RelationalOp {
-	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+    
+    private:
+	pthread_t thread;
+    Pipe *inputPipe;
+    Pipe *outputPipe;
+    CNF cnf;
+    Record recLiteral;
+	
+    public:
+	void Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+    static void *GetDataFromInputToOutputPipe(void *ptr);
 };
-class Project : public RelationalOp { 
+class Project : public RelationalOp {
+private:
+    pthread_t thread;
+    Pipe *inputPipe;
+    Pipe *outputPipe;
+    int  *attToKeep;
+    int attNumInput;
+    int attNumOutput;
+    
 	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, int *keepMe, int numAttsInput, int numAttsOutput) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, Pipe &outPipe, int *keepMe, int numAttsInput, int numAttsOutput);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+    static void *ProjectFromInputToOutputPipe(void *ptr);
 };
-class Join : public RelationalOp { 
-	public:
+class Join : public RelationalOp {
+public:
 	void Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal) { }
 	void WaitUntilDone () { }
 	void Use_n_Pages (int n) { }
 };
 class DuplicateRemoval : public RelationalOp {
-	public:
-	void Run (Pipe &inPipe, Pipe &outPipe, Schema &mySchema) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+private:
+    pthread_t thread;
+    Pipe *inputPipe;
+    Pipe *outputPipe;
+    Schema* schema;
+    static int runLength;
+
+public:
+    
+	void Run (Pipe &inPipe, Pipe &outPipe, Schema &mySchema);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+    static void *RemoveDuplicates(void *ptr);
 };
 class Sum : public RelationalOp {
 	public:
