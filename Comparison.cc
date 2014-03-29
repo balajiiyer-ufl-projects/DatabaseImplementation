@@ -69,7 +69,9 @@ OrderMaker :: OrderMaker() {
 	numAtts = 0;
 }
 
+
 OrderMaker :: OrderMaker(Schema *schema) {
+
 	numAtts = 0;
 
 	int n = schema->GetNumAtts();
@@ -138,6 +140,8 @@ string OrderMaker :: ToString () {
 int OrderMaker::GetNumberOfAttributes(){
     return numAtts;
 }
+
+
 
 void OrderMaker::SetAttributeMetadata(int numberOfAttributes,int* attArray,Type* attTypes){
     numAtts=numberOfAttributes;

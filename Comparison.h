@@ -49,6 +49,7 @@ class OrderMaker {
 	int whichAtts[MAX_ANDS];
 	Type whichTypes[MAX_ANDS];
 
+
 public:
 	
 	// creates an empty OrdermMaker
@@ -65,6 +66,9 @@ public:
     void SetAttributeMetadata(int numberOfAttributes,int* attArray,Type* attTypes);
     int* GetAttributeArray();
     Type* GetAttributeTypeArray();
+    
+
+    
     
     
 };

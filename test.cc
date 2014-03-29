@@ -270,11 +270,14 @@ void q6 () {
 		Record lit_p_ps;
 		get_cnf ("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
 
-	int outAtts = sAtts + psAtts;
+	//int outAtts = sAtts + psAtts;
+    int outAtts=2;
 	Attribute s_nationkey = {"s_nationkey", Int};
 	Attribute ps_supplycost = {"ps_supplycost", Double};
 	Attribute joinatt[] = {IA,SA,SA,s_nationkey,SA,DA,SA,IA,IA,IA,ps_supplycost,SA};
-	Schema join_sch ("join_sch", outAtts, joinatt);
+    
+    Attribute joinat[] = {ps_supplycost};
+	Schema join_sch ("join_sch", outAtts, joinat);
 
 	GroupBy G;
 		// _s (input pipe)
@@ -287,11 +290,11 @@ void q6 () {
 	G.Use_n_Pages (1);
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
-	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
+	//J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	G.Run (_s_ps, _out, grp_order, func);
 
 	SF_ps.WaitUntilDone ();
-	J.WaitUntilDone ();
+	//J.WaitUntilDone ();
 	G.WaitUntilDone ();
 
 	Schema sum_sch ("sum_sch", 1, &DA);
