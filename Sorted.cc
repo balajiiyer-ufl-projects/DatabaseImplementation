@@ -138,9 +138,9 @@ int Sorted::Open (char *f_path) {
     cout<<"FileName: "<<f_path<<endl;
     if(this->file.GetFileStatus()<0)
         return 0;
-    
+    #ifdef HEAP_DEBUG
     cout<<"File opened successfully"<<endl;
-    
+    #endif HEAP_DEBUG
     //Initialize parameters
     this->isPageDirty=false;
     this->currentPageNumber=1;

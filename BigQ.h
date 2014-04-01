@@ -69,6 +69,7 @@ public:
     ~BigQ();
     //Phase-1
    static void *GenerateRuns(void *ptr);
+        pthread_t sortingThread;
     void* CreateSortedRuns();
     //Phase-2
     

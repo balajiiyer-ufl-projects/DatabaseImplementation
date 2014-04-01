@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 
+
 // stub file .. replace it with your own DBFile.cc
 using namespace std;
 
@@ -56,7 +57,9 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
 int DBFile::Open (char *f_path) {
     
     //Phase-2
+#ifdef DBFILE_DEBUG
     cout<<"DBFile: Opening the file"<<endl;
+#endif
     if(!myInternalVar){
         struct stat fileBuffer;
         int fileStatus;
@@ -76,12 +79,16 @@ int DBFile::Open (char *f_path) {
             getline(inputFile,line);
             if(line.compare("heap")==0){
                 myInternalVar=new Heap();
+#ifdef DBFILE_DEBUG
                 cout<<"DBFile: Created a Heap instance"<<endl;
+#endif
                 break;
             }
             else if(line.compare("sorted")==0){
                 myInternalVar=new Sorted();
+                #ifdef DBFILE_DEBUG
                 cout<<"DBFile: Created a Sorted instance"<<endl;
+                #endif
                 break;
             }
         }

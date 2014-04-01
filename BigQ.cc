@@ -1,5 +1,10 @@
 #include "BigQ.h"
 
+#include <string.h>
+#include <ctime>
+#include <sys/time.h>
+#define BIGQ
+
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     
     // read data from in pipe sort them into runlen pages
@@ -11,7 +16,7 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
     runLength=runlen;
     
     //Creating new thread.Generates runs
-    pthread_t sortingThread;
+    //pthread_t sortingThread;
     //Need to check this
     pthread_create(&sortingThread,NULL,&GenerateRuns,(void*)this);
     
@@ -27,13 +32,13 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 
 BigQ::~BigQ () {
     
-    string mFile="runFile.bin";
-    char* runFile= new char[mFile.size()+1];
-    std::copy(mFile.begin(), mFile.end(), runFile);
-    runFile[mFile.size()] = '\0';
-    if(remove(runFile)){
-        perror("error in removing old file");
-    }
+    //string mFile="runFile.bin";
+    //char* runFile= new char[mFile.size()+1];
+    //std::copy(mFile.begin(), mFile.end(), runFile);
+    //runFile[mFile.size()] = '\0';
+    //    if(remove(runFile)){
+    //        perror("error in removing old file");
+    //    }
     
 }
 
@@ -47,9 +52,23 @@ void* BigQ::GenerateRuns(void *ptr){
 
 void* BigQ::CreateSortedRuns(){
     
-	//cout << "Inside create sorted runs" <<endl;
-    fileName="runFile.bin"; //probably requires timeStamp;
     
+    /*
+    std::time_t seconds = std::time(0);
+        stringstream ss;
+        ss<<seconds;
+        string mFile="run"+ss.str();
+        char* mergeFileName= new char[mFile.size()+1];
+        std::copy(mFile.begin(), mFile.end(), mergeFileName);
+            mergeFileName[mFile.size()] = '\0';
+            fileName=mergeFileName;//probably requires timeStamp;
+    */
+    char tempFileName[50];
+    sprintf(tempFileName, "runfile_%d", (int) sortingThread );
+    
+    
+    fileName=tempFileName;
+    //fileName="runFile.bin";
     pageCountPerRun=0;//Stores the page count per run
     pagesTotal=0;//Total number of pages in a file
     Record *record=new Record;
@@ -59,12 +78,11 @@ void* BigQ::CreateSortedRuns(){
     priority_queue<Record *, vector<Record *>, CompareRec> queue(sortOrder);
     file.Open(0,fileName);
     
+#ifdef BIGQ
+    cout<<"BigQ :Removing from the inputpipe"<<endl;
+#endif
     
-    //cout<<"BigQ :Removing from the inputpipe"<<endl;
     
-	if(inPipe){
-        //cout<<"Input pipe object exist"<<endl;
-    }
     while(inPipe->Remove(record)){
         recordCopy=new Record;
         //Copy the record since appending would consume the record
@@ -151,7 +169,7 @@ void* BigQ::CreateSortedRuns(){
 	
     runIndices.push_back(pageCountPerRun);
     for (int i = 0; i < runIndices.size(); i++) {
-       // cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
+        // cout << "runIndex[" << i << "]: " << runIndices[i] << "\n";
     }
     //cout<<"File length - 1= "<<file.GetLength()-1;
     file.Close();
@@ -159,10 +177,11 @@ void* BigQ::CreateSortedRuns(){
     // construct priority queue over sorted runs and dump sorted data
  	// into the out pipe
     MergeRuns();
+    remove(fileName);
     outPipe->ShutDown();
-
-
+    
 }
+
 int BigQ::MergeRuns(){
     
     file.Open(1, fileName);

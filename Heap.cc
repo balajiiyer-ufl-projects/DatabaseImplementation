@@ -41,6 +41,7 @@ void Heap::Load (Schema &f_schema, char *loadpath) {
     //Open the file
     FILE *fileToLoad = fopen(loadpath, "r");
     if(!fileToLoad){
+        
         cout<< "Can't open file name :" + string(loadpath);
     }
     Record record;
@@ -56,9 +57,9 @@ int Heap::Open (char *f_path) {
     this->file.Open(1, f_path);
     if(this->file.GetFileStatus()<0)
         return 0;
-    
+    #ifdef HEAP_DEBUG
     cout<<"File opened successfully"<<endl;
-    
+    #endif
     //Initialize parameters
     this->isPageDirty=false;
     this->currentPageNumber=1;
@@ -100,7 +101,9 @@ void Heap::Add (Record &rec) {
 	if(!this->page.Append(&rec)){
         
 		WritePageToFileIfDirty(&this->page, this->currentPageNumber);
+        #ifdef HEAP_DEBUG
 		cout << "Page is full.Appending the record to next page."<<endl;
+        #endif
 		this->currentPageNumber++;
         
 		/*Here, File::GetPage function can't be called. This is because

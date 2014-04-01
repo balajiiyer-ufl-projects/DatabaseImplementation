@@ -72,8 +72,8 @@ private:
     Pipe *inputPipeL;
     Pipe *inputPipeR;
     Pipe *outputPipe;
-    CNF cnf;
-    Record recLiteral;
+    CNF *cnf;
+    Record *recLiteral;
     
     
 public:
@@ -81,6 +81,7 @@ public:
 	void WaitUntilDone ();
 	void Use_n_Pages (int n);
     static void* JoinRecords(void *ptr);
+    static void Clear(vector<Record *> &value);
 };
 class DuplicateRemoval : public RelationalOp {
 private:
@@ -125,9 +126,16 @@ public:
     static void* GroupAndSum(void *ptr);
 };
 class WriteOut : public RelationalOp {
+private:
+    pthread_t thread;
+	Pipe *inputPipe;
+	FILE *outf;
+    Schema* schema;
 public:
-	void Run (Pipe &inPipe, FILE *outFile, Schema &mySchema) { }
-	void WaitUntilDone () { }
-	void Use_n_Pages (int n) { }
+	void Run (Pipe &inPipe, FILE *outFile, Schema &mySchema);
+	void WaitUntilDone ();
+	void Use_n_Pages (int n);
+    static void *WriteOutToFile(void *ptr);
+    
 };
 #endif
